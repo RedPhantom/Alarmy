@@ -1,0 +1,12 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="AlarmyService" GeneratedClassName="AlarmySettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ServiceURL" Description="The URL from which Alarmy receives new alarms." Type="System.String" Scope="User">
+      <Value Profile="(Default)">127.0.0.1</Value>
+    </Setting>
+    <Setting Name="SerivcePort" Description="The port to which Alarmy connects to the service." Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">8888</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
