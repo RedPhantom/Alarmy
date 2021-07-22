@@ -16,11 +16,15 @@ namespace AlarmyService
         private static SynchronousClient client =
             new SynchronousClient(AlarmySettings.Default.ServiceURL, AlarmySettings.Default.SerivcePort);
 
+        private static UnifiedLogger Logger = new UnifiedLogger("AlarmySerivce.ServiceProvider");
+
         /// <summary>
         /// Start communication with the Alarmy server.
         /// </summary>
         public static void StartProvider()
         {
+            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyService);
+
             BackgroundWorker bgwSendKeepAlive = new BackgroundWorker();
             Instance instance = Instance.GetInstance();
             string data = string.Empty;
@@ -37,7 +41,6 @@ namespace AlarmyService
                 // Send the initialization message.
                 client.Send(initMessageWrapper.Serialize());
 
-                EventLoggerUtils.Log("Creating KeepAlive BGW.", EventLogEntryType.Information);
                 // Start sending KeepAlives.
                 bgwSendKeepAlive.DoWork += PeriodicKeepAlive;
                 bgwSendKeepAlive.RunWorkerAsync(new KeepAliveParams(Consts.KeepAliveInterval, instance));
@@ -48,26 +51,7 @@ namespace AlarmyService
 
                     // Parse the data. Currently only one message type is supported.
                     MessageWrapperContent content = MessageWrapper.Deserialize(data);
-                    Dictionary<Type, Action> @switch = new Dictionary<Type, Action> {
-                            // ShowAlarmMessage
-                            // Here we receive a request to display an alarm to the user.
-                            { typeof(ShowAlarmMessage), () => {
-                                ShowAlarmMessage sam = (ShowAlarmMessage)content.Message;
-                                Program.ShowAlarm(sam.Alarm);
-                            } },
-
-                            // PingMessage
-                            // Here we receive a PingMessage and send back a simple ping response.
-                            { typeof(PingMessage), () =>
-                            {
-                                MessageWrapper<PingResponse> wrapper = new MessageWrapper<PingResponse>();
-                                PingResponse pr = new PingResponse(instance);
-                                wrapper.Message = pr;
-                                client.Send(wrapper.Serialize());
-                            } },
-                        };
-
-                    @switch[content.Type]();
+                    HandleMessageContent(content, instance);
                 }
             }
             catch (SocketException se)
@@ -79,16 +63,49 @@ namespace AlarmyService
                         break;
 
                     default:
-                        EventLoggerUtils.Log(string.Format("Got an unhandled Socket exception, code: {0} ({1}).",
-                                se.ErrorCode,
-                                ((SocketError)se.ErrorCode).ToString()),
-                            EventLogEntryType.Error);
+                        Logger.Log(LoggingLevel.Error, "Received an unhandled code {0} socket exception: {1}", se.ErrorCode, se);
                         break;
                 }
             }
             catch (Exception e)
             {
-                EventLoggerUtils.LogError("Unexpected error during client operation.", e);
+                Logger.Log(LoggingLevel.Critical, "Unexpected error during client operation: \n{0}", e);
+            }
+        }
+
+        /// <summary>
+        /// Handle possible messages received from the server.
+        /// </summary>
+        /// <param name="content">Object containing the message and its type for casting.</param>
+        /// <param name="instance">Instance of the service.</param>
+        private static void HandleMessageContent(MessageWrapperContent content, Instance instance)
+        {
+            Dictionary<Type, Action> @switch = new Dictionary<Type, Action> {
+                // ShowAlarmMessage
+                // Display an alarm to the user.
+                { typeof(ShowAlarmMessage), () => {
+                    ShowAlarmMessage sam = (ShowAlarmMessage)content.Message;
+                    Program.ShowAlarm(sam.Alarm);
+                } },
+
+                // PingMessage
+                // Send a response ("pong") to the user.
+                { typeof(PingMessage), () =>
+                {
+                    MessageWrapper<PingResponse> wrapper = new MessageWrapper<PingResponse>();
+                    PingResponse pr = new PingResponse(instance);
+                    wrapper.Message = pr;
+                    client.Send(wrapper.Serialize());
+                } },
+            };
+
+            try
+            {
+                @switch[content.Type]();
+            }
+            catch (KeyNotFoundException)
+            {
+                Logger.Log(LoggingLevel.Warning, "Received an unexpected message type: {0}.", content.Type.Name);
             }
         }
 
@@ -105,8 +122,6 @@ namespace AlarmyService
         /// </summary>
         private static void PeriodicKeepAlive(object sender, DoWorkEventArgs e)
         {
-            EventLoggerUtils.Log("Entering PeriodicKeepAlive. Cancel: " + e.Cancel.ToString(), EventLogEntryType.Information);
-
             KeepAliveParams args = (KeepAliveParams)e.Argument;
 
             while (!e.Cancel)
@@ -119,7 +134,6 @@ namespace AlarmyService
             }
         }
     }
-
 
     /// <summary>
     /// Holds parameters to pass to a BackgroundProcess performing KeepAlive sending.

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Management;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlarmyLib
 {
@@ -30,6 +27,10 @@ namespace AlarmyLib
             ComputerName = computerName;
         }
 
+        /// <summary>
+        /// Construct the instance specific to the current process and logged-on user.
+        /// </summary>
+        /// <returns>Instance specific to the current process and logged-on user.</returns>
         public static Instance GetInstance()
         {
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT UserName FROM Win32_ComputerSystem");

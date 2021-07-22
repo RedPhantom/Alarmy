@@ -23,9 +23,9 @@ namespace AlarmyLib
 
         public override string ToString()
         {
-            return string.Format("{0}@{1} ({2})",
+            // No need to add the computer name since it usually appears in the UserName.
+            return string.Format("{0} ({1})",
                 Instance.UserName,
-                Instance.ComputerName,
                 EndPoint.Address.ToString());
         }
     }

@@ -1,10 +1,13 @@
-﻿using System;
+﻿using AlarmyLib;
+using System;
 using System.ServiceProcess;
 
 namespace AlarmyService
 {
     public partial class AlarmySerivce : ServiceBase
     {
+        private UnifiedLogger Logger = new UnifiedLogger("AlarmyService");
+
         public AlarmySerivce()
         {
             InitializeComponent();
@@ -30,7 +33,7 @@ namespace AlarmyService
             }
             catch (Exception e)
             {
-                EventLoggerUtils.LogError(string.Format("Error client stopping: {}.\n{}", e.Message, e.StackTrace), e);
+                Logger.Log(LoggingLevel.Error, "Failed stopping the service provider: \n{0}.", e);
             }
         }
     }

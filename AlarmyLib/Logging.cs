@@ -105,19 +105,6 @@ namespace AlarmyLib
         }
     }
 
-    /// <summary>
-    /// A Unified Logger instance per software component.
-    /// </summary>
-    public class ComponentLogger
-    {
-        public UnifiedLogger Logger { get; private set; }
-
-        public ComponentLogger(string component)
-        {
-            
-        }
-    }
-
     public class EventLogger : ILogger
     {
         public EventLogSource Source { get; private set; }
@@ -146,12 +133,12 @@ namespace AlarmyLib
 
         private static string GetEventSource(EventLogSource source)
         {
-            if (!EventLog.SourceExists(Consts.ServiceEventLogName))
+            if (!EventLog.SourceExists(source.ToString()))
             {
-                EventLog.CreateEventSource(Consts.ServiceEventLogName, source.ToString());
+                EventLog.CreateEventSource(source.ToString(), "Application");
             }
 
-            return Consts.ServiceEventLogName;
+            return source.ToString();
         }
     }
 
@@ -197,6 +184,9 @@ namespace AlarmyLib
         }
     }
 
+    /// <summary>
+    /// Allows logging to a console.
+    /// </summary>
     public class ConsoleLogger : ILogger
     {
         public void Log(LoggingLevel level, string component, string message, params object[] parameters)

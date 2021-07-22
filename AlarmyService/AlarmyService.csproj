@@ -61,9 +61,6 @@
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="AsynchronousClient.cs" />
-    <Compile Include="EventLogger.cs" />
-    <Compile Include="ExceptionHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

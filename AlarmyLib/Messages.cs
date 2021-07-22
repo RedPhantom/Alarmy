@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 
 namespace AlarmyLib
 {
@@ -35,6 +34,9 @@ namespace AlarmyLib
         }
     }
 
+    /// <summary>
+    /// Holds an uncasted message and its type.
+    /// </summary>
     public class MessageWrapperContent
     {
         public object Message { get; set; }
@@ -47,6 +49,10 @@ namespace AlarmyLib
         }
     }
 
+    /// <summary>
+    /// Typed message wrapper.
+    /// </summary>
+    /// <typeparam name="T">Type of the message.</typeparam>
     public class MessageWrapper<T>
     {
         public string MessageType { get { return typeof(T).FullName; } }
@@ -58,6 +64,8 @@ namespace AlarmyLib
         }
     }
 
+    // Message Models
+
     public class ShowAlarmMessage : BaseMessage
     {
         public Alarm Alarm { get; }
@@ -66,6 +74,11 @@ namespace AlarmyLib
         {
             Alarm = alarm;
         }
+    }
+
+    public class PingMessage : BaseMessage
+    {
+
     }
 
     public class ServiceStartedResponse : BaseResponse
@@ -82,11 +95,6 @@ namespace AlarmyLib
         {
 
         }
-    }
-
-    public class PingMessage : BaseMessage
-    {
-
     }
 
     public class PingResponse : BaseResponse

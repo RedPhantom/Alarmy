@@ -15,6 +15,7 @@ namespace AlarmyService
 
         private IPEndPoint remoteEP;
         private Socket sender;
+        private UnifiedLogger Logger = new UnifiedLogger("AlarmyService.SynchronousClient");
 
         /// <summary>
         /// Create a new TCP Synchronous client.
@@ -23,6 +24,8 @@ namespace AlarmyService
         /// <param name="port">The port to connect to.</param>
         public SynchronousClient(string address, int port)
         {
+            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyService);
+
             IPAddress = IPAddress.Parse(address);
             Port = port;
 
@@ -63,8 +66,6 @@ namespace AlarmyService
         /// <param name="data">String data to send to the remote endpoint.</param>
         public void Send(string data)
         {
-            EventLoggerUtils.Log("Sending " + data, EventLogEntryType.Information);
-
             // Protect from parallel data sending, potentially causing corruption.
             lock (this)
             {
@@ -79,8 +80,7 @@ namespace AlarmyService
                     // If we attempted to send data but failed for three consecutive times, raise exception.
                     if (zeroBytesSentCounter == 2)
                     {
-                        // TODO: Replace with a custom AlarmyLib exception.
-                        throw new Exception("attempted to send data but failed for three consecutive times");
+                        Logger.Log(LoggingLevel.Error, "Attempted to send data but failed for three consecutive times.");
                     }
 
                     bytesSent = sender.Send(msg);
@@ -133,8 +133,7 @@ namespace AlarmyService
                 // Make sure the EOF tag exists in the received data and is at the correct position.
                 if (!data.EndsWith(Consts.EOFTag))
                 {
-                    // TODO: Replace with a custom AlarmyLib exception.
-                    throw new Exception("Data does not end with EOF Tag.");
+                    Logger.Log(LoggingLevel.Error, "Received data that doesn't end an the EOF Tag.");
                 }
 
                 // Returen the data without the EOF Tag.
