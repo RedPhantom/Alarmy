@@ -13,6 +13,7 @@ namespace AlarmyManager
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            SharedWriter.InitSharedWriter(ManagerSettings.Default.LogPath);
             Application.Run(new frmManager());
         }
     }

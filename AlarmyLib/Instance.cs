@@ -7,10 +7,11 @@ namespace AlarmyLib
     /// <summary>
     /// Describes an instance of an Alarmy Service installation.
     /// </summary>
-    public class Instance
+    public class Instance : IComparable, IEquatable<Instance>
     {
-        public string UserName { get; }
-        public string ComputerName { get; }
+        // Since this object is created from serialization, its public properties must be writable.
+        public string UserName { get; set; }
+        public string ComputerName { get; set; }
 
         public Instance(string userName, string computerName)
         {
@@ -38,6 +39,35 @@ namespace AlarmyLib
             string username = (string)collection.Cast<ManagementBaseObject>().First()["UserName"];
             string computerName = Environment.MachineName;
             return new Instance(username, computerName);
+        }
+
+        public int CompareTo(object obj)
+        {
+            Instance other = (Instance)obj;
+
+            return string.Compare(UserName, other.UserName) + string.Compare(ComputerName, other.ComputerName);
+        }
+
+        public bool Equals(Instance other)
+        {
+            return (UserName == other.UserName) && (ComputerName == other.ComputerName);
+        }
+
+        public override int GetHashCode()
+        {
+            return UserName.GetHashCode() ^ ComputerName.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            if (UserName.Contains(ComputerName))
+            {
+                return UserName;
+            }
+            else
+            {
+                return string.Format(@"{0}\{1}", UserName, ComputerName);
+            }
         }
     }
 }

@@ -1,7 +1,13 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace AlarmyLib
 {
+    // For ease of use, all Json Serialization and Deserialization should be done here.
+
+    // Reference for serialization and deserialization in this class are taken from here:
+    // https://stackoverflow.com/questions/38679972/determine-type-during-json-deserialize.
+
     /// <summary>
     /// Describes information sent from the server to the client.
     /// </summary>
@@ -12,7 +18,7 @@ namespace AlarmyLib
     /// </summary>
     public class BaseResponse
     {
-        public Instance Instance { get; }
+        public Instance Instance { get; set; }
 
         public BaseResponse(Instance instance)
         {
@@ -28,9 +34,11 @@ namespace AlarmyLib
         public static MessageWrapperContent Deserialize(string data)
         {
             Type t;
-            MessageWrapper wrapper = System.Text.Json.JsonSerializer.Deserialize<MessageWrapper>(data);
+            MessageWrapper wrapper = JsonConvert.DeserializeObject<MessageWrapper>(data);
+
             t = Type.GetType(wrapper.MessageType);
-            return new MessageWrapperContent(System.Text.Json.JsonSerializer.Deserialize(data, t), t);
+
+            return new MessageWrapperContent(JsonConvert.DeserializeObject(Convert.ToString(wrapper.Message), t), t);
         }
     }
 
@@ -60,7 +68,7 @@ namespace AlarmyLib
 
         public string Serialize()
         {
-            return System.Text.Json.JsonSerializer.Serialize(this);
+            return JsonConvert.SerializeObject(this);
         }
     }
 
@@ -68,7 +76,7 @@ namespace AlarmyLib
 
     public class ShowAlarmMessage : BaseMessage
     {
-        public Alarm Alarm { get; }
+        public Alarm Alarm { get; set; }
 
         public ShowAlarmMessage(Alarm alarm) : base()
         {
@@ -81,11 +89,30 @@ namespace AlarmyLib
 
     }
 
+    public class ErrorMessage : BaseMessage
+    {
+        public enum ErrorCode
+        {
+            MaxConnectionsExceeded
+        }
+
+        public ErrorCode Code { get; set; }
+        public string Text { get; set; }
+
+        public ErrorMessage(ErrorCode code, string text = null)
+        {
+            Code = code;
+            Text = text;
+        }
+    }
+
+    // Response Models
+
     public class ServiceStartedResponse : BaseResponse
     {
         public ServiceStartedResponse(Instance instance) : base(instance)
         {
-
+            Instance = Instance;
         }
     }
 

@@ -30,12 +30,17 @@ namespace AlarmyLib
 
     public static class UnifiedLogging
     {
-        internal static EventLogEntryType GetEventLogEntryType(LoggingLevel level)
+        /// <summary>
+        /// Retrieve the appropriate <see cref="EventLogEntryType"/> per <see cref="LoggingLevel"/>.
+        /// </summary>
+        /// <exception cref="ArgumentException">An invalid <see cref="LoggingLevel"/> value was specified.</exception>
+        /// <returns><c>null</c> when no matching type could be found, otherwise am <see cref="EventLogEntryType"/>.</returns>
+        internal static EventLogEntryType? GetEventLogEntryType(LoggingLevel level)
         {
             switch (level)
             {
                 case LoggingLevel.Trace:
-                    return EventLogEntryType.Information;
+                    return null;
 
                 case LoggingLevel.Information:
                     return EventLogEntryType.Information;
@@ -50,7 +55,7 @@ namespace AlarmyLib
                     return EventLogEntryType.Error;
 
                 default:
-                    throw new Exception("Invalid level " + level);
+                    throw new ArgumentException("Invalid level " + level.ToString());
             }
         }
     }
@@ -127,7 +132,12 @@ namespace AlarmyLib
             using (EventLog eventLog = new EventLog())
             {
                 eventLog.Source = GetEventSource(Source);
-                eventLog.WriteEntry(string.Format("{0} - {1}", component, string.Format(format, paramters), UnifiedLogging.GetEventLogEntryType(level)));
+                EventLogEntryType? eventLogLevel = UnifiedLogging.GetEventLogEntryType(level);
+                
+                if (eventLogLevel != null)
+                {
+                    eventLog.WriteEntry(string.Format("{0} - {1}", component, string.Format(format, paramters), eventLogLevel));
+                }
             }
         }
 

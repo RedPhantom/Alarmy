@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AlarmyManager2")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("AlarmyManager")]
+[assembly: AssemblyDescription("Management of Alarmy clients")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AlarmyManager2")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
+[assembly: AssemblyCompany("Rando")]
+[assembly: AssemblyProduct("AlarmyManager")]
+[assembly: AssemblyCopyright("Copyright © Itay Asayag and the Rando Project 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

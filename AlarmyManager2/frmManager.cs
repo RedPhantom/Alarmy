@@ -1,24 +1,17 @@
 ﻿using AlarmyLib;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using static AlarmyManager.ServerStartParameters;
 
 namespace AlarmyManager
 {
     public partial class frmManager : Form
     {
-        Thread serverThread;
+        private Thread ServerThread;
 
         public frmManager()
         {
@@ -27,7 +20,7 @@ namespace AlarmyManager
 
         private void frmManager_Load(object sender, EventArgs e)
         {
-            Text = string.Format("Manager v{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Text = string.Format("Alarmy Manager v{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
             StartServer();
         }
 
@@ -41,12 +34,13 @@ namespace AlarmyManager
         private void StartServer()
         {
             AllocConsole();
+            Console.Title = "Alarmy Manager";
 
             try
             {
-                ServerLauncher server = new ServerLauncher(ManagerSettings.Default.ServicePort);
-                serverThread = new Thread(server.Start);
-                serverThread.Start();
+                ServerLauncher ServerLauncher = new ServerLauncher(ManagerSettings.Default.ServicePort);
+                ServerThread = new Thread(() => ServerLauncher.Start(new ServerStartParameters(OnInstancesUpdate)));
+                ServerThread.Start();
             }
             catch (Exception ex)
             {
@@ -59,7 +53,7 @@ namespace AlarmyManager
         /// </summary>
         private void btnAllUsers_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < clbUsers.Items.Count; i++)
+            for (int i = 0; i < clbUsers.Items.Count; ++i)
             {
                 clbUsers.SetItemChecked(i, true);
             }
@@ -70,7 +64,7 @@ namespace AlarmyManager
         /// </summary>
         private void btnNoUsers_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < clbUsers.Items.Count; i++)
+            for (int i = 0; i < clbUsers.Items.Count; ++i)
             {
                 clbUsers.SetItemChecked(i, false);
             }
@@ -78,11 +72,43 @@ namespace AlarmyManager
 
         private void btnSend_Click(object sender, EventArgs e)
         {
-            // Construct an Alarm.
+            // Construct an Alarm and its message.
             Alarm alarm = new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Text);
+            ShowAlarmMessage sam = new ShowAlarmMessage(alarm);
 
             // Send the Alarm.
             // TODO: Implement.
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            clbUsers.Items.Clear();
+            lock (ManagerState.ActiveInstances)
+            {
+                ManagerState.ActiveInstances.Clear();
+            }
+
+            AlarmyServer.PingClients();
+        }
+        
+        /// <summary>
+        /// Event handler for the service provider's instances update.
+        /// </summary>
+        private void OnInstancesUpdate(object sender, InstancesChangeEventArgs args)
+        {
+            UpdateInstances(args.Instance);
+        }
+
+        /// <summary>
+        /// Update the users list box and the dictionary that links an instance and its last seen time to its index
+        /// in the list box.
+        /// </summary>
+        private void UpdateInstances(Instance instance)
+        {
+            if (ListBox.NoMatches == clbUsers.FindStringExact(instance.ToString()))
+            {
+                clbUsers.Items.Add(instance);
+            }
         }
     }
 }

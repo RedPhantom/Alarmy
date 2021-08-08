@@ -1,6 +1,5 @@
 ﻿using AlarmyLib;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -69,7 +68,7 @@ namespace AlarmyService
             // Protect from parallel data sending, potentially causing corruption.
             lock (this)
             {
-                byte[] msg = Encoding.ASCII.GetBytes(data + Consts.EOFTag);
+                byte[] msg = Encoding.UTF8.GetBytes(data + Consts.EOFTag);
                 int messageSize = msg.Length;
                 int bytesSent = 0;
                 int totalBytesSent = 0;
@@ -124,7 +123,7 @@ namespace AlarmyService
                 while (0 != bytesReceived)
                 {
                     bytesReceived = sender.Receive(buffer);
-                    data += Encoding.ASCII.GetString(buffer);
+                    data += Encoding.UTF8.GetString(buffer);
 
                     // Clean the buffer.
                     buffer = new byte[Consts.BufferSize];

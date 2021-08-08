@@ -10,23 +10,24 @@ namespace AlarmyManager
     /// receives the IDs of all created events from the BlueEye devices.
     /// Sends all new event IDs to Mashlat applications.
     /// </summary>
-    class AlarmyServiceProvider : TcpServiceProvider
+    internal class AlarmyServiceProvider : TcpServiceProvider
     {
-        public Dictionary<Instance, DateTime> ActiveInstances = new Dictionary<Instance, DateTime>();
-
         private string _receivedStr;
         private UnifiedLogger Logger = new UnifiedLogger("AlarmyServiceProvider");
+        private ServerStartParameters ServerParameters;
 
-        public AlarmyServiceProvider()
+        public AlarmyServiceProvider(ServerStartParameters parameters)
         {
             Logger.EnableConsoleLogging();
             Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
             Logger.EnableFileLogging(SharedWriter.Writer);
+
+            ServerParameters = parameters;
         }
 
         public override object Clone()
         {
-            return new AlarmyServiceProvider();
+            return new AlarmyServiceProvider(ServerParameters);
         }
 
         /// <summary>
@@ -35,6 +36,7 @@ namespace AlarmyManager
         /// <param name="state">Client with which connection established.</param>
         public override void OnAcceptConnection(ConnectionState state)
         {
+            AlarmyServer.Clients.Add(state);
             Logger.Log(LoggingLevel.Trace, "Accepted a connection from {0}.", state.RemoteEndPoint);
         }
 
@@ -63,16 +65,25 @@ namespace AlarmyManager
                 }
             }
 
-            // Reading data is complete, parsing is now possible.
-            // Check if the message has been received to its end.
-            if (_receivedStr.Contains(Consts.EOFTag))
+            try
             {
-                MessageWrapperContent mrc = ParseMessage(_receivedStr.Replace(Consts.EOFTag, ""), state);
-                HandleMessage(mrc);
+                // Raise an exception if our message doesn't contain the EOF Tag.
+                if (!_receivedStr.Contains(Consts.EOFTag))
+                {
+                    throw new Exception("Missing EOF Tag.");
+                }
+
+                // If multiple messages accumulated, parse each.
+                foreach (string message in _receivedStr.Split(new string[] { Consts.EOFTag }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    MessageWrapperContent mrc = ParseMessage(message, state);
+                    HandleMessage(mrc);
+                }
             }
-            else
+            catch
             {
-                Logger.Log(LoggingLevel.Warning, "Received an incomplete message (EOF Tag missing).");
+                Logger.Log(LoggingLevel.Warning,
+                "Received a malformed message.\nOrigin: \n{0}\nRaw Content: \n{1}", state.RemoteEndPoint, _receivedStr);
             }
 
             _receivedStr = string.Empty;
@@ -86,25 +97,14 @@ namespace AlarmyManager
         private MessageWrapperContent ParseMessage(string msg, ConnectionState state)
         {
             MessageWrapperContent wrapper;
-
-            try
-            {
-                wrapper = MessageWrapper.Deserialize(msg);
-                Logger.Log(LoggingLevel.Trace, "Received a message of type {0}.", wrapper.Type.Name);
-            }
-            catch
-            {
-                Logger.Log(LoggingLevel.Warning,
-                    "Received a malformed message.\n\tOrigin: \n\t{0}\n\tRaw Content: \n\t{1}", state.RemoteEndPoint, msg);
-                return null;
-            }
+            wrapper = MessageWrapper.Deserialize(msg);
 
             return wrapper;
         }
 
         private void HandleMessage(MessageWrapperContent mrc) 
         {
-            // Handle the message (response - message from a client) based on its type.
+            // Handle the message ("response" - a message from a client) based on its type.
             var @switch = new Dictionary<Type, Action> {
                 { typeof(KeepAliveResponse), () => {
                     KeepAliveResponse kar = (KeepAliveResponse)mrc.Message;
@@ -113,6 +113,8 @@ namespace AlarmyManager
 
                     // Keep track of all instances and their time of last appearance.
                     UpdateActiveInstances(kar.Instance);
+                    ServerParameters.OnInstancesChange(this, 
+                        new ServerStartParameters.InstancesChangeEventArgs(kar.Instance));
                 } },
                 { typeof(PingResponse), () => {
                     PingResponse pr = (PingResponse)mrc.Message;
@@ -120,6 +122,8 @@ namespace AlarmyManager
                     // Since this is a ping response, no need to respond.
 
                     UpdateActiveInstances(pr.Instance);
+                    ServerParameters.OnInstancesChange(this, 
+                        new ServerStartParameters.InstancesChangeEventArgs(pr.Instance));
                 } },
                 { typeof(ServiceStartedResponse), () => { 
                     // We don't respond to ServiceStarted messages.
@@ -135,13 +139,26 @@ namespace AlarmyManager
         /// <param name="instance"><see cref="Instance"/> information received from the client.</param>
         private void UpdateActiveInstances(Instance instance)
         {
-            if (!ActiveInstances.ContainsKey(instance))
+            if (instance == null)
             {
-                ActiveInstances.Add(instance, DateTime.Now);
+                Logger.Log(LoggingLevel.Error, "Received a null instance.");
+            }
+
+            if (!ManagerState.ActiveInstances.ContainsKey(instance))
+            {
+                lock (ManagerState.ActiveInstances)
+                {
+                    ManagerState.ActiveInstances.Add(instance, DateTime.Now);
+                    Logger.Log(LoggingLevel.Trace, "Added a new instance to the ActiveInstances pool.");
+                }
             }
             else
             {
-                ActiveInstances[instance] = DateTime.Now;
+                lock (ManagerState.ActiveInstances)
+                {
+                    ManagerState.ActiveInstances[instance] = DateTime.Now;
+                    Logger.Log(LoggingLevel.Trace, "Updated an existing instance in the ActiveInstances pool.");
+                }
             }
         }
 
@@ -153,7 +170,7 @@ namespace AlarmyManager
         public override void OnDropConnection(ConnectionState state)
         {
             AlarmyServer.Clients.Remove(state);
-            Logger.Log(LoggingLevel.Trace, "Connection dropped: {0}.", state.RemoteEndPoint.ToString());
+            Logger.Log(LoggingLevel.Trace, "Connection dropped by {0}.", state.RemoteEndPoint.ToString());
         }
     }
 }

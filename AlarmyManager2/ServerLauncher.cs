@@ -28,10 +28,31 @@ namespace AlarmyManager
         /// <summary>
         /// Launch the server with the current configuration.
         /// </summary>
-        public void Start()
+        public void Start(ServerStartParameters parameters)
         {
             Logger.Log(LoggingLevel.Information, "Starting server on port {0}.", Port);
-            AlarmyServer.Start(Port);
+            AlarmyServer.Start(Port, parameters);
         }
+    }
+
+    internal class ServerStartParameters
+    {
+        internal EventHandler<InstancesChangeEventArgs> OnInstancesChange;
+
+        public ServerStartParameters(EventHandler<InstancesChangeEventArgs> onInstancesChange)
+        {
+            OnInstancesChange = onInstancesChange;
+        }
+
+        internal class InstancesChangeEventArgs : EventArgs
+        {
+            public Instance Instance { get; private set; }
+
+            public InstancesChangeEventArgs(Instance instance)
+            {
+                Instance = instance;
+            }
+        }
+
     }
 }

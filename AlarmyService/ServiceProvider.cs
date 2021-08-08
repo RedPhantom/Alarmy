@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -92,11 +91,19 @@ namespace AlarmyService
                 // Send a response ("pong") to the user.
                 { typeof(PingMessage), () =>
                 {
-                    MessageWrapper<PingResponse> wrapper = new MessageWrapper<PingResponse>();
+                    MessageWrapper<PingResponse> prWrapper = new MessageWrapper<PingResponse>();
                     PingResponse pr = new PingResponse(instance);
-                    wrapper.Message = pr;
-                    client.Send(wrapper.Serialize());
+                    prWrapper.Message = pr;
+                    client.Send(prWrapper.Serialize());
                 } },
+
+                { typeof(ErrorMessage), () =>
+                {
+                    ErrorMessage em = (ErrorMessage)content.Message;
+                    Logger.Log(LoggingLevel.Error, "Received a code {0} error message from the server: \n{1}",
+                        em.Code,
+                        em.Text == null ? "<no additional data>" : em.Text);
+                } }
             };
 
             try
@@ -129,6 +136,7 @@ namespace AlarmyService
                 MessageWrapper<KeepAliveResponse> wrapper = new MessageWrapper<KeepAliveResponse>();
                 KeepAliveResponse kam = new KeepAliveResponse(args.Instance);
                 wrapper.Message = kam;
+
                 client.Send(wrapper.Serialize());
                 Thread.Sleep(args.Interval);
             }

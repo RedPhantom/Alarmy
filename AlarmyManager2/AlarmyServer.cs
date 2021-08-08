@@ -2,32 +2,26 @@
 using System;
 using System.Collections.Generic;
 using System.Security;
+using System.Text;
 
 namespace AlarmyManager
 {
-    public class AlarmyServer
+    internal static class AlarmyServer
     {
-        public static List<ConnectionState> Clients = new List<ConnectionState>();
-
-        private static UnifiedLogger Logger = new UnifiedLogger("AlarmyServer");
-
-        public static void Start(int port)
+        internal static List<ConnectionState> Clients = new List<ConnectionState>();
+        internal static UnifiedLogger Logger = new UnifiedLogger("AlarmyServer");
+        internal static TcpServer InternalServer;
+        
+        internal static void Start(int port, ServerStartParameters parameters)
         {
             Logger.EnableConsoleLogging();
             Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
             Logger.EnableFileLogging(SharedWriter.Writer);
 
-            AlarmyServiceProvider AlarmyProvider = new AlarmyServiceProvider();
-            TcpServer AlarmyServiceProvider = new TcpServer(AlarmyProvider, port);
+            InternalServer = new TcpServer(new AlarmyServiceProvider(parameters), port);
 
-            // Allow the user to type the password again in case of a mistake.
-            while (true)
-            {
-                SecureString CertificatePassword = GetCertificatePassword();
-                AlarmyServiceProvider.Start(ManagerSettings.Default.ServerCertificatePath, CertificatePassword);
-                Console.WriteLine("Server stopped. Press any key to restart or close the terminal.");
-                Console.ReadKey();
-            }
+            SecureString CertificatePassword = GetCertificatePassword();
+            InternalServer.Start(ManagerSettings.Default.ServerCertificatePath, CertificatePassword);
         }
 
         /// <summary>
@@ -86,22 +80,18 @@ namespace AlarmyManager
             return secureString;
         }
 
-        /// <summary>
-        /// Sends an event to a field unit.
-        /// </summary>
-        /// <param name="elr"><see cref="EventLaunchRequest"/> data.</param>
-        /*internal static void LaunchEvent(EventLaunchRequest elr)
+        internal static void PingClients()
         {
-            for (int i = 0; i < Clients.Count; i++)
+            foreach (var client in Clients)
             {
-                if (Clients[i].DeviceID != null)
-                    if (Clients[i].DeviceID == elr.TargetDeviceID)
-                    {
-                        // send the event!
-                        byte[] msg = Encoding.UTF8.GetBytes("[evt]" + elr.EventRecordID.ToString() + "[/evt]");
-                        Clients[i].Write(msg, 0, msg.Length);
-                    }
-            }
-        }*/
+                MessageWrapper<PingMessage> pmw = new MessageWrapper<PingMessage>
+                {
+                    Message = new PingMessage()
+                };
+
+                byte[] pmBytes = Encoding.UTF8.GetBytes(pmw.Serialize());
+                client.Write(pmBytes, 0, pmBytes.Length);
+            }    
+        }
     }
 }

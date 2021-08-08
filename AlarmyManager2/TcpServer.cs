@@ -16,17 +16,17 @@ namespace AlarmyManager
         /// <summary>
         /// Port from which to serve clients.
         /// </summary>
-        private readonly int _port;
+        private readonly int Port;
 
         /// <summary>
         /// Socket on which to listen for connections.
         /// </summary>
-        private Socket _listener;
+        private Socket Listener;
 
         /// <summary>
         /// Service provider.
         /// </summary>
-        private readonly TcpServiceProvider _provider;
+        internal readonly TcpServiceProvider Provider;
 
         /// <summary>
         /// Maximum number of concurrent connections.
@@ -51,7 +51,7 @@ namespace AlarmyManager
         private readonly UnifiedLogger Logger = new UnifiedLogger("TcpServer");
 
         /// <summary>
-        /// Server certificate.
+        /// Server's SSL certificate.
         /// </summary>
         static X509Certificate serverCertificate = null;
 
@@ -65,9 +65,10 @@ namespace AlarmyManager
             Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
             Logger.EnableFileLogging(SharedWriter.Writer);
 
-            _provider = provider;
-            _port = port;
-            _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            Provider = provider;
+            Port = port;
+            Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             CurrentConnections = new ArrayList();
             ConnectionReady = new AsyncCallback(ConnectionReady_Handler);
             AcceptConnection = new WaitCallback(AcceptConnection_Handler);
@@ -88,9 +89,9 @@ namespace AlarmyManager
                 serverCertificate = new X509Certificate2(certificatePath, certificatePassword);
                 Logger.Log(LoggingLevel.Trace, "Certificate activation successful.");
 
-                _listener.Bind(new IPEndPoint(IPAddress.Loopback, _port));
-                _listener.Listen(100);
-                _listener.BeginAccept(ConnectionReady, null);
+                Listener.Bind(new IPEndPoint(IPAddress.Loopback, Port));
+                Listener.Listen(100);
+                Listener.BeginAccept(ConnectionReady, null);
                 Logger.Log(LoggingLevel.Trace, "Starting to listen for connections.");
                 return true;
             }
@@ -115,19 +116,21 @@ namespace AlarmyManager
         {
             lock (this)
             {
-                if (_listener == null)
+                if (Listener == null)
                 { 
                     return; 
                 }
 
-                Socket conn = _listener.EndAccept(ar);
+                Socket conn = Listener.EndAccept(ar);
 
                 if (CurrentConnections.Count >= _maxConnections)
                 {
-                    // Max number of connections reached.
-                    // TODO: find a better way to inform the client the server is busy.
-                    string msg = "SE001: Server busy";
-                    conn.Send(Encoding.UTF8.GetBytes(msg), 0, msg.Length, SocketFlags.None);
+                    // Max number of connections reached. Terminate the connection with the client.
+                    // TODO: send error message
+                    ErrorMessage ce = new ErrorMessage(ErrorMessage.ErrorCode.MaxConnectionsExceeded);
+                    MessageWrapper<ErrorMessage> messageWrapper = new MessageWrapper<ErrorMessage>();
+
+                    conn.Send(Encoding.UTF8.GetBytes(messageWrapper.Serialize()), SocketFlags.None);
                     conn.Shutdown(SocketShutdown.Both);
                     conn.Close();
                 }
@@ -138,17 +141,18 @@ namespace AlarmyManager
                     {
                         _conn = conn,
                         _server = this,
-                        _provider = (TcpServiceProvider)_provider.Clone(),
+                        _provider = (TcpServiceProvider)Provider.Clone(),
                         _buffer = new byte[4]
                     };
 
                     CurrentConnections.Add(st);
+
                     // Queue the rest of the job to be executed later.
                     ThreadPool.QueueUserWorkItem(AcceptConnection, st);
                 }
 
                 // Resume the listening callback loop.
-                _listener.BeginAccept(ConnectionReady, null);
+                Listener.BeginAccept(ConnectionReady, null);
             }
         }
 
@@ -201,21 +205,21 @@ namespace AlarmyManager
                 //Server.Write($"Connection with a client was terminated.", "tcp", messageTypes.INFO);
                 return;
             }
-            //Im considering the following condition as a signal that the
-            //remote host droped the connection.
+            
+            // No data is available so we drop the connection.
             if (st._conn.Available == 0)
             { 
                 DropConnection(st); 
             }
             else
             {
-                try { 
+                try 
+                { 
                     st._provider.OnReceiveData(st); 
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LoggingLevel.Error, "Critical error: {0}", ex.Message);
-                    //TODO: Report error in the provider
+                    Logger.Log(LoggingLevel.Error, "Error propagating OnReceiveData: {0}", ex);
                 }
 
                 // Resume the ReceivedData callback loop.
@@ -233,14 +237,15 @@ namespace AlarmyManager
         {
             lock (this)
             {
-                _listener.Close();
-                _listener = null;
+                Listener.Close();
+                Listener = null;
 
                 // Close all active connections.
                 foreach (object obj in CurrentConnections)
                 {
                     ConnectionState st = obj as ConnectionState;
-                    try { 
+                    try 
+                    { 
                         st._provider.OnDropConnection(st); 
                     }
                     catch
@@ -255,10 +260,11 @@ namespace AlarmyManager
         }
 
         /// <summary>
-        /// Removes a connection from the list
+        /// Removes a connection from the <see cref="CurrentConnections"/> list.
         /// </summary>
         internal void DropConnection(ConnectionState st)
         {
+            Logger.Log(LoggingLevel.Trace, "Dropping a connection from {0}.", st.RemoteEndPoint.ToString());
             lock (this)
             {
                 st._conn.Shutdown(SocketShutdown.Both);

@@ -48,9 +48,13 @@ namespace AlarmyManager
             try
             {
                 if (_conn.Available > 0)
-                    return _conn.Receive(buffer, offset,
-                           count, SocketFlags.None);
-                else return 0;
+                {
+                    return _conn.Receive(buffer, offset, count, SocketFlags.None);
+                }
+                else
+                {
+                    return 0;
+                }
             }
             catch
             {

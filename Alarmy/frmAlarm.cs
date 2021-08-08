@@ -1,13 +1,6 @@
 ﻿using AlarmyLib;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Alarmy
@@ -33,6 +26,11 @@ namespace Alarmy
 
             lblTitle.Text = alarm.Title;
             rtbContent.Text = alarm.Content;
+        }
+
+        private void btnValidateAuthenticity_MouseHover(object sender, EventArgs e)
+        {
+            toolTip1.Show("View this message online.", this, MousePosition);
         }
     }
 }
