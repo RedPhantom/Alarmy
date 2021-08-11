@@ -38,21 +38,25 @@ namespace AlarmyManager
     internal class ServerStartParameters
     {
         internal EventHandler<InstancesChangeEventArgs> OnInstancesChange;
+        internal EventHandler<EventArgs> OnServerStart;
 
-        public ServerStartParameters(EventHandler<InstancesChangeEventArgs> onInstancesChange)
+        public ServerStartParameters(EventHandler<InstancesChangeEventArgs> onInstancesChange,
+            EventHandler<EventArgs> onServerStart)
         {
             OnInstancesChange = onInstancesChange;
+            OnServerStart = onServerStart;
         }
+    }
 
-        internal class InstancesChangeEventArgs : EventArgs
+    internal class InstancesChangeEventArgs : EventArgs
+    {
+        public Instance Instance { get; private set; }
+        public ConnectionState Connection { get; private set; }
+
+        public InstancesChangeEventArgs(Instance instance, ConnectionState connection)
         {
-            public Instance Instance { get; private set; }
-
-            public InstancesChangeEventArgs(Instance instance)
-            {
-                Instance = instance;
-            }
+            Instance = instance;
+            Connection = connection;
         }
-
     }
 }

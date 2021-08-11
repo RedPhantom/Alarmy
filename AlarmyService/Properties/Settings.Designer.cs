@@ -8,26 +8,22 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AlarmyService {
+namespace AlarmyService.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
-    internal sealed partial class AlarmySettings : global::System.Configuration.ApplicationSettingsBase {
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
-        private static AlarmySettings defaultInstance = ((AlarmySettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new AlarmySettings())));
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
         
-        public static AlarmySettings Default {
+        public static Settings Default {
             get {
                 return defaultInstance;
             }
         }
         
-        /// <summary>
-        /// The URL from which Alarmy receives new alarms.
-        /// </summary>
         [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Configuration.SettingsDescriptionAttribute("The URL from which Alarmy receives new alarms.")]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
         public string ServiceURL {
@@ -39,11 +35,7 @@ namespace AlarmyService {
             }
         }
         
-        /// <summary>
-        /// The port to which Alarmy connects to the service.
-        /// </summary>
         [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Configuration.SettingsDescriptionAttribute("The port to which Alarmy connects to the service.")]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("8888")]
         public int SerivcePort {

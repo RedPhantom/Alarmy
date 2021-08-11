@@ -1,14 +1,15 @@
 ﻿using AlarmyLib;
 using System;
 using System.ServiceProcess;
+using System.Threading;
 
 namespace AlarmyService
 {
-    public partial class AlarmySerivce : ServiceBase
+    public partial class AlarmyService : ServiceBase
     {
         private UnifiedLogger Logger = new UnifiedLogger("AlarmyService");
 
-        public AlarmySerivce()
+        public AlarmyService()
         {
             InitializeComponent();
         }
@@ -16,8 +17,11 @@ namespace AlarmyService
         protected override void OnStart(string[] args)
         {
             try
-            { 
-                ServiceProvider.StartProvider();
+            {
+                Thread t = new Thread(new ThreadStart(() => {
+                    ServiceProvider.StartProvider(this);
+                }));
+                t.Start();
             }
             catch
             {

@@ -29,15 +29,19 @@ namespace AlarmyManager
         {
             return new AlarmyServiceProvider(ServerParameters);
         }
-
+        
         /// <summary>
         /// A connection has been esablished with a client.
         /// </summary>
         /// <param name="state">Client with which connection established.</param>
         public override void OnAcceptConnection(ConnectionState state)
         {
+            // Add the connection to the pool.
             AlarmyServer.Clients.Add(state);
             Logger.Log(LoggingLevel.Trace, "Accepted a connection from {0}.", state.RemoteEndPoint);
+
+            // Send a ping request to the new client.
+            AlarmyServer.PingClient(state);
         }
 
         /// <summary>
@@ -77,7 +81,7 @@ namespace AlarmyManager
                 foreach (string message in _receivedStr.Split(new string[] { Consts.EOFTag }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     MessageWrapperContent mrc = ParseMessage(message, state);
-                    HandleMessage(mrc);
+                    HandleMessage(mrc, state);
                 }
             }
             catch
@@ -102,31 +106,37 @@ namespace AlarmyManager
             return wrapper;
         }
 
-        private void HandleMessage(MessageWrapperContent mrc) 
+        private void HandleMessage(MessageWrapperContent mrc, ConnectionState connection) 
         {
             // Handle the message ("response" - a message from a client) based on its type.
             var @switch = new Dictionary<Type, Action> {
                 { typeof(KeepAliveResponse), () => {
+                    // TODO: Drop the use of KeepAlives. It uses too much bandwidth.
+
                     KeepAliveResponse kar = (KeepAliveResponse)mrc.Message;
 
-                    // We don't respond to KeepAlive messages.
+                    // We don't send a response to KeepAlive messages.
 
                     // Keep track of all instances and their time of last appearance.
                     UpdateActiveInstances(kar.Instance);
-                    ServerParameters.OnInstancesChange(this, 
-                        new ServerStartParameters.InstancesChangeEventArgs(kar.Instance));
+                    ServerParameters.OnInstancesChange(this, new InstancesChangeEventArgs(kar.Instance, connection));
                 } },
                 { typeof(PingResponse), () => {
                     PingResponse pr = (PingResponse)mrc.Message;
 
-                    // Since this is a ping response, no need to respond.
+                    // Since this is a ping response, no need to send a response,
+                    // just update the client pool.
 
                     UpdateActiveInstances(pr.Instance);
-                    ServerParameters.OnInstancesChange(this, 
-                        new ServerStartParameters.InstancesChangeEventArgs(pr.Instance));
+                    ServerParameters.OnInstancesChange(this, new InstancesChangeEventArgs(pr.Instance, connection));
                 } },
                 { typeof(ServiceStartedResponse), () => { 
-                    // We don't respond to ServiceStarted messages.
+                    // We don't send a response.
+                    
+                    ServiceStartedResponse ssr = (ServiceStartedResponse)mrc.Message;
+
+                    UpdateActiveInstances(ssr.Instance);
+                    ServerParameters.OnInstancesChange(this, new InstancesChangeEventArgs(ssr.Instance, connection));
                 } },
             };
             
@@ -141,7 +151,7 @@ namespace AlarmyManager
         {
             if (instance == null)
             {
-                Logger.Log(LoggingLevel.Error, "Received a null instance.");
+                Logger.Log(LoggingLevel.Error, "UpdateActiveInstances Received a null instance.");
             }
 
             if (!ManagerState.ActiveInstances.ContainsKey(instance))
@@ -170,7 +180,7 @@ namespace AlarmyManager
         public override void OnDropConnection(ConnectionState state)
         {
             AlarmyServer.Clients.Remove(state);
-            Logger.Log(LoggingLevel.Trace, "Connection dropped by {0}.", state.RemoteEndPoint.ToString());
+            Logger.Log(LoggingLevel.Trace, "Dropped the connection with {0}.", state.RemoteEndPoint.ToString());
         }
     }
 }

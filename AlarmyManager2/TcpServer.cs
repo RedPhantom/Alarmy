@@ -13,6 +13,8 @@ namespace AlarmyManager
 {
     class TcpServer
     {
+        public const int MaxServerConnections = 100;
+
         /// <summary>
         /// Port from which to serve clients.
         /// </summary>
@@ -31,7 +33,7 @@ namespace AlarmyManager
         /// <summary>
         /// Maximum number of concurrent connections.
         /// </summary>
-        private int _maxConnections = Consts.MaxServerConnections;
+        private int _maxConnections = MaxServerConnections;
 
         /// <summary>
         /// Callback for when the connection is ready.

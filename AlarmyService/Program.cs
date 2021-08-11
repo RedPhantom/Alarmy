@@ -1,15 +1,12 @@
 ﻿using AlarmyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AlarmyService
 {
     static class Program
     {
+        // TODO: Create a new WinForms project in the solution that will repalce AlarmyService.
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -18,16 +15,18 @@ namespace AlarmyService
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new AlarmySerivce()
+                new AlarmyService()
             };
             ServiceBase.Run(ServicesToRun);
         }
 
-        public static void ShowAlarm(Alarm alarm)
+        public static void ShowAlarm(ShowAlarmMessage sam)
         {
-            Alarmy.frmAlarm frmAlarm = new Alarmy.frmAlarm();
-            frmAlarm.LoadAlarm(alarm);
-            frmAlarm.Show();
+            MessageWrapper<ShowAlarmMessage> samWrapper = new MessageWrapper<ShowAlarmMessage>()
+            {
+                Message = sam
+            };
+            Process.Start()
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 namespace AlarmyService
 {
-    partial class AlarmySerivce
+    partial class AlarmyService
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,7 +30,7 @@ namespace AlarmyService
         private void InitializeComponent()
         {
             // 
-            // AlarmySerivce
+            // AlarmyService
             // 
             this.ServiceName = "AlarmyService";
 

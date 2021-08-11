@@ -21,7 +21,27 @@ namespace AlarmyManager
             InternalServer = new TcpServer(new AlarmyServiceProvider(parameters), port);
 
             SecureString CertificatePassword = GetCertificatePassword();
-            InternalServer.Start(ManagerSettings.Default.ServerCertificatePath, CertificatePassword);
+
+            bool serverStartSuccessful = InternalServer.Start(Properties.Settings.Default.ServerCertificatePath, 
+                CertificatePassword);
+            if (serverStartSuccessful)
+            {
+                parameters.OnServerStart(InternalServer, new EventArgs());
+            }
+        }
+
+        // Stop the server.
+        internal static void Stop()
+        {
+            InternalServer.Stop();
+        }
+
+        internal static void OnApplicationExit(object sender, EventArgs e)
+        {
+            Console.Write("\nStopping server... ");
+            Stop();
+            Console.WriteLine("Server stopped. Press any key to exit or close the console.");
+            Console.ReadKey(intercept: true);
         }
 
         /// <summary>
@@ -80,18 +100,34 @@ namespace AlarmyManager
             return secureString;
         }
 
+        internal static void PingClient(ConnectionState client)
+        {
+            MessageWrapper<PingMessage> pmw = new MessageWrapper<PingMessage>
+            {
+                Message = new PingMessage()
+            };
+
+            byte[] pmBytes = Encoding.UTF8.GetBytes(pmw.Serialize() + Consts.EOFTag);
+            client.Write(pmBytes, 0, pmBytes.Length);
+        }
+
+        internal static void TriggerAlarm(ConnectionState client, Alarm alarm) 
+        {
+            MessageWrapper<ShowAlarmMessage> sam = new MessageWrapper<ShowAlarmMessage>
+            {
+                Message = new ShowAlarmMessage(alarm)
+            };
+
+            byte[] amBytes = Encoding.UTF8.GetBytes(sam.Serialize() + Consts.EOFTag);
+            client.Write(amBytes, 0, amBytes.Length);
+        }
+
         internal static void PingClients()
         {
             foreach (var client in Clients)
             {
-                MessageWrapper<PingMessage> pmw = new MessageWrapper<PingMessage>
-                {
-                    Message = new PingMessage()
-                };
-
-                byte[] pmBytes = Encoding.UTF8.GetBytes(pmw.Serialize());
-                client.Write(pmBytes, 0, pmBytes.Length);
-            }    
+                PingClient(client);
+            }
         }
     }
 }

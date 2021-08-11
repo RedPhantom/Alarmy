@@ -4,6 +4,8 @@ using System.IO;
 
 namespace AlarmyLib
 {
+    // TODO: Use a logging library, not this monstrosity.
+
     /// <summary>
     /// Provides uniform logging API.
     /// </summary>
@@ -14,9 +16,8 @@ namespace AlarmyLib
         /// </summary>
         /// <param name="level">Severity of the message.</param>
         /// <param name="component">Component from which the meesage is sent.</param>
-        /// <param name="format">Format String of the message to write.</param>
-        /// <param name="parameters">Values that will populate the formatted message.</param>
-        void Log(LoggingLevel level, string component, string format, params object[] parameters);
+        /// <param name="message">Message to log into the relvant logging provider.</param>
+        void Log(LoggingLevel level, string component, string message);
     }
 
     public enum LoggingLevel
@@ -93,19 +94,31 @@ namespace AlarmyLib
 
         public void Log(LoggingLevel level, string format, params object[] parameters)
         {
+            string message = format;
+
+            try
+            {
+                message = string.Format(format, parameters);
+            }
+            catch (FormatException)
+            {
+                // Do nothing. We need to support messages that aren't designed to be formatted as well.
+                ;
+            }
+
             if (ConsoleLogger != null)
             {
-                ConsoleLogger.Log(level, Component, format, parameters);
+                ConsoleLogger.Log(level, Component, message);
             }
 
             if (FileLogger != null)
             {
-                FileLogger.Log(level, Component, format, parameters);
+                FileLogger.Log(level, Component, message);
             }
 
             if (EventLogger != null)
             {
-                EventLogger.Log(level, Component, format, parameters);
+                EventLogger.Log(level, Component, message);
             }
         }
     }
@@ -127,7 +140,7 @@ namespace AlarmyLib
             Source = source;
         }
 
-        public void Log(LoggingLevel level, string component, string format, params object[] paramters)
+        public void Log(LoggingLevel level, string component, string message)
         {
             using (EventLog eventLog = new EventLog())
             {
@@ -136,7 +149,7 @@ namespace AlarmyLib
                 
                 if (eventLogLevel != null)
                 {
-                    eventLog.WriteEntry(string.Format("{0} - {1}", component, string.Format(format, paramters), eventLogLevel));
+                    eventLog.WriteEntry(string.Format("{0} - {1}", component, message, eventLogLevel));
                 }
             }
         }
@@ -179,16 +192,17 @@ namespace AlarmyLib
             Writer = writer;
         }
 
-        public void Log(LoggingLevel level, string component, string format, params object[] parameters)
+        public void Log(LoggingLevel level, string component, string message)
         {
             // Using a mutex to prevent writing to the file at the same time from a different thread.
             lock (this)
             {
                 Writer.WriteLine(string.Format("{0} [{1}] {2} - {3}",
-                DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ff"),
-                level.ToString(),
-                component,
-                string.Format(format, parameters)));
+                    DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ff"),
+                    level.ToString(),
+                    component,
+                    message));
+
                 Writer.Flush();
             }
         }
@@ -199,14 +213,14 @@ namespace AlarmyLib
     /// </summary>
     public class ConsoleLogger : ILogger
     {
-        public void Log(LoggingLevel level, string component, string message, params object[] parameters)
+        public void Log(LoggingLevel level, string component, string message)
         {
             // Using a mutex to prevent writing to the console at the same time from a different thread.
             lock (this)
             {
                 Console.Write(string.Format("{0} ", DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ff")));
                 WriteLevel(level);
-                Console.WriteLine(string.Format("{0} - {1}", component, string.Format(message, parameters)));
+                Console.WriteLine(string.Format("{0} - {1}", component, message));
             }
         }
 

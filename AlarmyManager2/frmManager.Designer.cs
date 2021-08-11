@@ -40,6 +40,9 @@ namespace AlarmyManager
             this.btnSend = new System.Windows.Forms.Button();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.cbRightToLeft = new System.Windows.Forms.CheckBox();
+            this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // clbUsers
@@ -150,11 +153,29 @@ namespace AlarmyManager
             this.cbRightToLeft.Text = "Right to Left";
             this.cbRightToLeft.UseVisualStyleBackColor = true;
             // 
+            // statusStrip
+            // 
+            this.statusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.lblStatus});
+            this.statusStrip.Location = new System.Drawing.Point(0, 373);
+            this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Size = new System.Drawing.Size(851, 26);
+            this.statusStrip.TabIndex = 9;
+            this.statusStrip.Text = "statusStrip1";
+            // 
+            // lblStatus
+            // 
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(168, 20);
+            this.lblStatus.Text = "Waiting for server start...";
+            // 
             // frmManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(851, 375);
+            this.ClientSize = new System.Drawing.Size(851, 399);
+            this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.cbRightToLeft);
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.btnSend);
@@ -172,6 +193,8 @@ namespace AlarmyManager
             this.Name = "frmManager";
             this.Text = "Alarmy Manager";
             this.Load += new System.EventHandler(this.frmManager_Load);
+            this.statusStrip.ResumeLayout(false);
+            this.statusStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -190,6 +213,8 @@ namespace AlarmyManager
         private System.Windows.Forms.Button btnSend;
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.CheckBox cbRightToLeft;
+        private System.Windows.Forms.StatusStrip statusStrip;
+        private System.Windows.Forms.ToolStripStatusLabel lblStatus;
     }
 }
 

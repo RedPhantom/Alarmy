@@ -22,5 +22,41 @@ namespace AlarmyManager.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8888")]
+        public int ServicePort {
+            get {
+                return ((int)(this["ServicePort"]));
+            }
+            set {
+                this["ServicePort"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\")]
+        public string LogPath {
+            get {
+                return ((string)(this["LogPath"]));
+            }
+            set {
+                this["LogPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\itaya\\source\\repos\\Alarmy\\AlarmyManager2\\cert.pfx")]
+        public string ServerCertificatePath {
+            get {
+                return ((string)(this["ServerCertificatePath"]));
+            }
+            set {
+                this["ServerCertificatePath"] = value;
+            }
+        }
     }
 }
