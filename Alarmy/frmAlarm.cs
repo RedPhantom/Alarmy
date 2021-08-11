@@ -25,12 +25,32 @@ namespace Alarmy
             }
 
             lblTitle.Text = alarm.Title;
-            rtbContent.Text = alarm.Content;
+            rtbContent.Rtf = alarm.Content;
         }
 
         private void btnValidateAuthenticity_MouseHover(object sender, EventArgs e)
         {
-            toolTip1.Show("View this message online.", this, MousePosition);
+        }
+
+        private void tmrShowNotification_Tick(object sender, EventArgs e)
+        {
+            string trimmedMessage;
+
+            if (rtbContent.Text.Length <= 30)
+            {
+                trimmedMessage = rtbContent.Text;
+            }
+            else
+            {
+                trimmedMessage = rtbContent.Text.Substring(0, 30);
+            }
+
+            notifyIcon1.BalloonTipTitle = lblTitle.Text;
+            notifyIcon1.BalloonTipText = trimmedMessage;
+            notifyIcon1.BalloonTipIcon = ToolTipIcon.Info;
+            notifyIcon1.Text = trimmedMessage;
+            notifyIcon1.ShowBalloonTip(0);
+            tmrShowNotification.Enabled = false;
         }
     }
 }

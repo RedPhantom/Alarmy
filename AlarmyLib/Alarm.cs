@@ -44,5 +44,10 @@ namespace AlarmyLib
             }
             Content = content;
         }
+
+        public override string ToString()
+        {
+            return Title;
+        }
     }
 }

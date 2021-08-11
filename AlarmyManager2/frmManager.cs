@@ -72,12 +72,17 @@ namespace AlarmyManager
 
         private void btnSend_Click(object sender, EventArgs e)
         {
-            // Construct an Alarm and its message.
             Alarm alarm;
+            
+            if (0 == clbUsers.CheckedItems.Count)
+            {
+                lblStatus.Text = "No users are selected.";
+                return;
+            }
 
             try
             {
-                alarm = new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Text);
+                alarm = new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
                 ShowAlarmMessage sam = new ShowAlarmMessage(alarm);
             }
             catch (ArgumentException ae)
@@ -94,11 +99,7 @@ namespace AlarmyManager
             }
 
             clbUsers.Enabled = false;
-            // Send the Alarm.
-            // TODO: Implement.
-            MessageBox.Show(clbUsers.SelectedItems.Count.ToString());
-
-            foreach (Instance instance in clbUsers.SelectedItems)
+            foreach (Instance instance in clbUsers.CheckedItems)
             {
                 ConnectionState client = InstanceToConnection[instance];
                 lblStatus.Text = string.Format("Sending alarm to {0}...", instance);
@@ -111,12 +112,15 @@ namespace AlarmyManager
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             clbUsers.Items.Clear();
+            dgvLastSeen.Rows.Clear();
+
             lock (ManagerState.ActiveInstances)
             {
                 ManagerState.ActiveInstances.Clear();
             }
 
             AlarmyServer.PingClients();
+            UpdateLastSeen();
         }
         
         /// <summary>
@@ -159,6 +163,114 @@ namespace AlarmyManager
                     InstanceToConnection.Add(instance, connection);
                 }
             }
+        }
+
+        private void cbRightToLeft_CheckedChanged(object sender, EventArgs e)
+        {
+            rtbContent.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
+            tbTitle.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
+        }
+
+        private void btnStopServer_Click(object sender, EventArgs e)
+        {
+            lblStatus.Text = "Stopping server...";
+            AlarmyServer.Stop();
+            lblStatus.Text = "Server stopped.";
+            
+
+            // TODO: this is a temp. fix due to object disposed exception
+            Application.Exit();
+        }
+
+        private void tmrLastSeen_Tick(object sender, EventArgs e)
+        {
+            UpdateLastSeen();
+        }
+
+        private void UpdateLastSeen()
+        {
+            foreach (Instance instance in ManagerState.ActiveInstances.Keys)
+            {
+                // Update the cell that holds the Last Seen time, or add the entire row if needed.
+                string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - ManagerState.ActiveInstances[instance], precision: 2);
+                bool foundCell = false;
+
+                foreach (DataGridViewRow row in dgvLastSeen.Rows)
+                {
+                    if (row.Cells[0].Value == instance)
+                    {
+                        row.Cells[1].Value = humanizedLastSeen;
+                        foundCell = true;
+                    }
+                }
+
+                if (!foundCell)
+                {
+                    dgvLastSeen.Rows.Add(instance, humanizedLastSeen);
+                }
+            }
+        }
+
+        private void btnTransferSelection_Click(object sender, EventArgs e)
+        {
+            List<DataGridViewRow> SelectedRows = new List<DataGridViewRow>();
+            
+            foreach (DataGridViewCell cell in dgvLastSeen.SelectedCells)
+            {
+                if (!SelectedRows.Contains(cell.OwningRow))
+                {
+                    SelectedRows.Add(cell.OwningRow);
+                }
+            }
+
+            foreach (DataGridViewRow row in SelectedRows)
+            {
+                Instance instance = (Instance)row.Cells[0].Value;
+
+                if (clbUsers.Items.Contains(instance))
+                {
+                    clbUsers.SetItemChecked(clbUsers.Items.IndexOf(instance), true);
+                }
+                else
+                {
+                    lblStatus.Text = "Failed to find " + instance + " in the users list.";
+                }
+            }
+        }
+
+        private void btnTransferSelection_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Apply the selected users here to the users list.";
+        }
+
+        private void btnStopServer_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Disconnect all clients and stop the server.";
+        }
+
+        private void cbRightToLeft_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Mark the message to be displayed from right to left.";
+        }
+
+        private void btnSend_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Send the message to all selected users.";
+        }
+
+        private void btnRefresh_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Refresh the user list by pinging all connected clients.";
+        }
+
+        private void btnNoUsers_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Deselect all users.";
+        }
+
+        private void btnAllUsers_MouseHover(object sender, EventArgs e)
+        {
+            lblHelp.Text = "Select all users.";
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Alarmy")]
-[assembly: AssemblyDescription("UI Capabilities of Alarmy - display an alarm to the user")]
+[assembly: AssemblyDescription("Alarmy - display an alarm to the user")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rando")]
 [assembly: AssemblyProduct("Alarmy")]

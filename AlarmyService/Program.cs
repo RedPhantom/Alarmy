@@ -26,7 +26,6 @@ namespace AlarmyService
             {
                 Message = sam
             };
-            Process.Start()
         }
     }
 }
