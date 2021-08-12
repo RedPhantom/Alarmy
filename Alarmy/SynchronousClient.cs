@@ -15,9 +15,9 @@ namespace Alarmy
         private static readonly TimeSpan ReconnectAttemptWait = new TimeSpan(hours: 0, minutes: 0, seconds: 15);
         private const int ZeroBytesReceivedAttempts = 3;
 
-        private IPEndPoint remoteEP;
-        private Socket sender;
-        private UnifiedLogger Logger = new UnifiedLogger("AlarmyService.SynchronousClient");
+        private readonly IPEndPoint remoteEP;
+        private readonly Socket sender;
+        private readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService.SynchronousClient");
 
         /// <summary>
         /// Create a new TCP Synchronous client.

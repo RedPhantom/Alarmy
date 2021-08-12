@@ -13,8 +13,8 @@ namespace AlarmyManager
     internal class AlarmyServiceProvider : TcpServiceProvider
     {
         private string _receivedStr;
-        private UnifiedLogger Logger = new UnifiedLogger("AlarmyServiceProvider");
-        private ServerStartParameters ServerParameters;
+        private readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyServiceProvider");
+        private readonly ServerStartParameters ServerParameters;
 
         public AlarmyServiceProvider(ServerStartParameters parameters)
         {
@@ -80,7 +80,7 @@ namespace AlarmyManager
                 // If multiple messages accumulated, parse each.
                 foreach (string message in _receivedStr.Split(new string[] { Consts.EOFTag }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    MessageWrapperContent mrc = ParseMessage(message, state);
+                    MessageWrapperContent mrc = ParseMessage(message);
                     HandleMessage(mrc, state);
                 }
             }
@@ -97,8 +97,8 @@ namespace AlarmyManager
         /// Parse the data received from the client.
         /// </summary>
         /// <param name="msg">Message received from the client.</param>
-        /// <param name="state">Client.</param>
-        private MessageWrapperContent ParseMessage(string msg, ConnectionState state)
+        /// 
+        private MessageWrapperContent ParseMessage(string msg)
         {
             MessageWrapperContent wrapper;
             wrapper = MessageWrapper.Deserialize(msg);

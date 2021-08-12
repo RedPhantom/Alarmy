@@ -11,7 +11,8 @@ namespace AlarmyManager
     public partial class frmManager : Form
     {
         private Thread ServerThread;
-        private Dictionary<Instance, ConnectionState> InstanceToConnection = new Dictionary<Instance, ConnectionState>();
+        private readonly Dictionary<Instance, ConnectionState> InstanceToConnection = 
+            new Dictionary<Instance, ConnectionState>();
 
         public frmManager()
         {
@@ -82,8 +83,7 @@ namespace AlarmyManager
 
             try
             {
-                alarm = new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
-                ShowAlarmMessage sam = new ShowAlarmMessage(alarm);
+                alarm = GetAlarmFromForm();
             }
             catch (ArgumentException ae)
             {
@@ -98,6 +98,12 @@ namespace AlarmyManager
                 return;
             }
 
+            // Construct the message for the alarm and send it.
+            TriggerAlarmForClients(alarm);
+        }
+
+        private void TriggerAlarmForClients(Alarm alarm)
+        {
             clbUsers.Enabled = false;
             foreach (Instance instance in clbUsers.CheckedItems)
             {
@@ -107,6 +113,11 @@ namespace AlarmyManager
             }
             lblStatus.Text = "Alarm deployment complete.";
             clbUsers.Enabled = true;
+        }
+
+        private Alarm GetAlarmFromForm()
+        {
+            return new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)

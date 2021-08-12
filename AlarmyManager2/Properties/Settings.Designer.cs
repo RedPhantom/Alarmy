@@ -23,7 +23,11 @@ namespace AlarmyManager.Properties {
             }
         }
         
+        /// <summary>
+        /// The port used to accept new connections.
+        /// </summary>
         [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsDescriptionAttribute("The port used to accept new connections.")]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("8888")]
         public int ServicePort {
@@ -35,7 +39,11 @@ namespace AlarmyManager.Properties {
             }
         }
         
+        /// <summary>
+        /// Path in which log files will be saved.
+        /// </summary>
         [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsDescriptionAttribute("Path in which log files will be saved.")]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(".\\")]
         public string LogPath {
@@ -47,7 +55,11 @@ namespace AlarmyManager.Properties {
             }
         }
         
+        /// <summary>
+        /// The certificate used to encrypt communication with the clients.
+        /// </summary>
         [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsDescriptionAttribute("The certificate used to encrypt communication with the clients.")]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\itaya\\source\\repos\\Alarmy\\AlarmyManager2\\cert.pfx")]
         public string ServerCertificatePath {
@@ -56,6 +68,22 @@ namespace AlarmyManager.Properties {
             }
             set {
                 this["ServerCertificatePath"] = value;
+            }
+        }
+        
+        /// <summary>
+        /// The directory to which alarms will be exported.
+        /// </summary>
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.SettingsDescriptionAttribute("The directory to which alarms will be exported.")]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\Alarms\\")]
+        public string ExportDirectory {
+            get {
+                return ((string)(this["ExportDirectory"]));
+            }
+            set {
+                this["ExportDirectory"] = value;
             }
         }
     }

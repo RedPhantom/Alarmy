@@ -21,7 +21,7 @@ namespace Alarmy
 
     internal static class AlarmyService
     {
-        private static UnifiedLogger Logger = new UnifiedLogger("AlarmyService");
+        private static readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService");
 
         internal static void Start()
         {
@@ -53,7 +53,7 @@ namespace Alarmy
 
     class AlarmyApplicationContext : ApplicationContext
     {
-        private NotifyIcon trayIcon;
+        private readonly NotifyIcon trayIcon;
         private const string defaultTrayIconText = "Alarmy Service";
         
         public enum TrayIconStatus

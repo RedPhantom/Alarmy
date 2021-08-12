@@ -15,7 +15,7 @@ namespace Alarmy
     {
         private static SynchronousClient Client;
         
-        private static UnifiedLogger Logger = new UnifiedLogger("AlarmyService.ServiceProvider");
+        private static readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService.ServiceProvider");
         private static bool ShouldAttemtReconnecting = true;
 
         /// <summary>
@@ -149,7 +149,7 @@ namespace Alarmy
                     ErrorMessage em = (ErrorMessage)content.Message;
                     Logger.Log(LoggingLevel.Error, "Received a code {0} error message from the server: \n{1}",
                         em.Code,
-                        em.Text == null ? "<no additional data>" : em.Text);
+                        em.Text ?? "<no additional data>");
                 } }
             };
 

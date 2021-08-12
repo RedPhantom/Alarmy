@@ -70,7 +70,7 @@ namespace AlarmyLib
         public FileLogger FileLogger { get; private set; }
         public EventLogger EventLogger { get; private set; }
 
-        private string Component = string.Empty;
+        private readonly string Component = string.Empty;
 
         public UnifiedLogger(string component)
         {
@@ -185,7 +185,7 @@ namespace AlarmyLib
     /// </summary>
     public class FileLogger : ILogger
     {
-        private StreamWriter Writer;
+        private readonly StreamWriter Writer;
 
         public FileLogger(StreamWriter writer)
         {
