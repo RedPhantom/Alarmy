@@ -10,7 +10,6 @@ namespace AlarmyManager
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            SharedWriter.InitSharedWriter(Properties.Settings.Default.LogPath);
             Application.ApplicationExit += AlarmyServer.OnApplicationExit;
 
             Application.Run(new frmManager());

@@ -10,14 +10,10 @@ namespace AlarmyManager
     {
         public int Port { get; }
 
-        private UnifiedLogger Logger = new UnifiedLogger("ServerLauncher");
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ServerLauncher(int port)
         {
-            Logger.EnableConsoleLogging();
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
-            Logger.EnableFileLogging(SharedWriter.Writer);
-
             if (port < 1024)
             {
                 throw new ArgumentException("Port must be >= 1024.");
@@ -30,7 +26,7 @@ namespace AlarmyManager
         /// </summary>
         public void Start(ServerStartParameters parameters)
         {
-            Logger.Log(LoggingLevel.Information, "Starting server on port {0}.", Port);
+            Logger.Info("Starting server on port {0}.", Port);
             AlarmyServer.Start(Port, parameters);
         }
     }

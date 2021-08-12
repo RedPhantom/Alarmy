@@ -17,7 +17,7 @@ namespace Alarmy
 
         private readonly IPEndPoint remoteEP;
         private readonly Socket sender;
-        private readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService.SynchronousClient");
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Create a new TCP Synchronous client.
@@ -26,8 +26,6 @@ namespace Alarmy
         /// <param name="port">The port to connect to.</param>
         public SynchronousClient(string address, int port)
         {
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyService);
-
             IPAddress = IPAddress.Parse(address);
             Port = port;
 
@@ -60,9 +58,10 @@ namespace Alarmy
                 }
                 catch (SocketException se)
                 {
-                    Logger.Log(LoggingLevel.Error, "Failed to connect to the server (code {0}):\n{1}",
-                        se.ErrorCode,
-                        se.Message);
+                    if (SocketError.ConnectionRefused != se.SocketErrorCode)
+                    {
+                        Logger.Error(se, "Failed to connect to the server.");
+                    }
                     Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Error,
                         "Failed to connect to the Alarmy Server. Retyring in " + ReconnectAttemptWait.TotalSeconds + " seconds.");
                     System.Threading.Thread.Sleep(ReconnectAttemptWait);
@@ -114,8 +113,7 @@ namespace Alarmy
                     // If we attempted to send data but failed for three consecutive times, raise exception.
                     if (zeroBytesSentCounter == ZeroBytesReceivedAttempts)
                     {
-                        Logger.Log(LoggingLevel.Error, "Attempted to send data but failed for {0} consecutive times.", 
-                            ZeroBytesReceivedAttempts);
+                        Logger.Error("Attempted to send data but failed for {0} consecutive times.", zeroBytesSentCounter);
                     }
 
                     bytesSent = sender.Send(msg);
@@ -171,7 +169,7 @@ namespace Alarmy
                 // Make sure the EOF tag exists in the received data and is at the correct position.
                 if (!data.EndsWith(Consts.EOFTag))
                 {
-                    Logger.Log(LoggingLevel.Error, "Received data that doesn't end with an EOF Tag.");
+                    Logger.Warn("Received data that doesn't end with an EOF Tag:\n{0}", data);
                 }
 
                 // Returen the data without the EOF Tag.

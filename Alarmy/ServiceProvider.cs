@@ -14,22 +14,15 @@ namespace Alarmy
     public static class ServiceProvider
     {
         private static SynchronousClient Client;
-        
-        private static readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService.ServiceProvider");
+
         private static bool ShouldAttemtReconnecting = true;
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Start communication with the Alarmy server.
         /// </summary>
         public static void StartProvider()
         {
-#if DEBUG
-            System.Diagnostics.Debugger.Launch();
-#endif
-
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyService);
-
-            BackgroundWorker bgwSendKeepAlive = new BackgroundWorker();
             Instance instance = Instance.GetInstance();
 
             while (ShouldAttemtReconnecting)
@@ -45,7 +38,6 @@ namespace Alarmy
                     MessageBox.Show("Failed to start the client:\n" + e.ToString(), "Error");
                     return;
                 }
-                
 
                 // Prepare an initialization message.
 
@@ -78,26 +70,30 @@ namespace Alarmy
                     data = Client.Receive();
 
                     // Parse the data. Currently only one message type is supported.
-                    MessageWrapperContent content = MessageWrapper.Deserialize(data);
-                    HandleMessageContent(content, instance);
+
+                    if (null != data)
+                    {
+                        MessageWrapperContent content = MessageWrapper.Deserialize(data);
+                        HandleMessageContent(content, instance);
+                    }
                 }
                 catch (SocketException se)
                 {
                     // The server crashed / closed without disconnecting the client.
                     if (SocketError.ConnectionReset == se.SocketErrorCode)
                     {
-                        Logger.Log(LoggingLevel.Warning, "The server stopped responding without disconnecting the client.");
+                        Logger.Warn("The server stopped responding without disconnecting the client.");
                     }
                     else
                     {
-                        Logger.Log(LoggingLevel.Error, "Failed to retrieve data from the server ({0}), stopping service:\n{1}.", se.SocketErrorCode, se);
+                        Logger.Warn(se, "Failed to retrieve data from the server.");
                     }
 
                     return;
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(LoggingLevel.Error, "Stopping service due to an exception:\n{0}", e);
+                    Logger.Fatal(e, "Stopping service due to an exception.");
 
                     // No matter the exception, stop the provider.
                     StopProvider();
@@ -147,9 +143,7 @@ namespace Alarmy
                 { typeof(ErrorMessage), () =>
                 {
                     ErrorMessage em = (ErrorMessage)content.Message;
-                    Logger.Log(LoggingLevel.Error, "Received a code {0} error message from the server: \n{1}",
-                        em.Code,
-                        em.Text ?? "<no additional data>");
+                    Logger.Error("Received a code {0} error message from the server: \n{1}", em.Code, em.Text ?? "<no additional data>");
                 } }
             };
 
@@ -157,9 +151,9 @@ namespace Alarmy
             {
                 @switch[content.Type]();
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ke)
             {
-                Logger.Log(LoggingLevel.Warning, "Received an unexpected message type: {0}.", content.Type.Name);
+                Logger.Warn(ke, "Received an unexpected message type: {0}.", content.Type);
             }
         }
 

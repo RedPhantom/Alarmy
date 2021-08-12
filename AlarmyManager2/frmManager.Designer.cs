@@ -30,7 +30,6 @@ namespace AlarmyManager
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmManager));
             this.clbUsers = new System.Windows.Forms.CheckedListBox();
             this.btnAllUsers = new System.Windows.Forms.Button();
             this.btnNoUsers = new System.Windows.Forms.Button();
@@ -44,6 +43,7 @@ namespace AlarmyManager
             this.cbRightToLeft = new System.Windows.Forms.CheckBox();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.lblHelp = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnStopServer = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.tmrLastSeen = new System.Windows.Forms.Timer(this.components);
@@ -51,8 +51,6 @@ namespace AlarmyManager
             this.colInstance = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colLastSeen = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnTransferSelection = new System.Windows.Forms.Button();
-            this.lblHelp = new System.Windows.Forms.ToolStripStatusLabel();
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.statusStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).BeginInit();
             this.SuspendLayout();
@@ -191,6 +189,11 @@ namespace AlarmyManager
             this.lblStatus.Size = new System.Drawing.Size(168, 20);
             this.lblStatus.Text = "Waiting for server start...";
             // 
+            // lblHelp
+            // 
+            this.lblHelp.Name = "lblHelp";
+            this.lblHelp.Size = new System.Drawing.Size(0, 20);
+            // 
             // btnStopServer
             // 
             this.btnStopServer.Location = new System.Drawing.Point(724, 334);
@@ -263,19 +266,6 @@ namespace AlarmyManager
             this.btnTransferSelection.Click += new System.EventHandler(this.btnTransferSelection_Click);
             this.btnTransferSelection.MouseHover += new System.EventHandler(this.btnTransferSelection_MouseHover);
             // 
-            // lblHelp
-            // 
-            this.lblHelp.Name = "lblHelp";
-            this.lblHelp.Size = new System.Drawing.Size(0, 20);
-            // 
-            // notifyIcon1
-            // 
-            this.notifyIcon1.BalloonTipText = "sefsefse";
-            this.notifyIcon1.BalloonTipTitle = "awdawdawdawdawd";
-            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
-            this.notifyIcon1.Text = "notifyIcon1";
-            this.notifyIcon1.Visible = true;
-            // 
             // frmManager
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -334,7 +324,6 @@ namespace AlarmyManager
         private System.Windows.Forms.DataGridViewTextBoxColumn colLastSeen;
         private System.Windows.Forms.Button btnTransferSelection;
         private System.Windows.Forms.ToolStripStatusLabel lblHelp;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
     }
 }
 

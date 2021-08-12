@@ -13,15 +13,12 @@ namespace AlarmyManager
     internal class AlarmyServiceProvider : TcpServiceProvider
     {
         private string _receivedStr;
-        private readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyServiceProvider");
         private readonly ServerStartParameters ServerParameters;
+
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         public AlarmyServiceProvider(ServerStartParameters parameters)
         {
-            Logger.EnableConsoleLogging();
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
-            Logger.EnableFileLogging(SharedWriter.Writer);
-
             ServerParameters = parameters;
         }
 
@@ -37,9 +34,9 @@ namespace AlarmyManager
         public override void OnAcceptConnection(ConnectionState state)
         {
             // Add the connection to the pool.
+            Logger.Trace("Accepted a connection from {0}.", state.RemoteEndPoint);
             AlarmyServer.Clients.Add(state);
-            Logger.Log(LoggingLevel.Trace, "Accepted a connection from {0}.", state.RemoteEndPoint);
-
+ 
             // Send a ping request to the new client.
             AlarmyServer.PingClient(state);
         }
@@ -86,8 +83,8 @@ namespace AlarmyManager
             }
             catch
             {
-                Logger.Log(LoggingLevel.Warning,
-                "Received a malformed message.\nOrigin: \n{0}\nRaw Content: \n{1}", state.RemoteEndPoint, _receivedStr);
+                Logger.Warn("Received a malformed message.\nOrigin: \n{0}\nRaw Content: \n{1}", 
+                    state.RemoteEndPoint, _receivedStr);
             }
 
             _receivedStr = string.Empty;
@@ -151,7 +148,7 @@ namespace AlarmyManager
         {
             if (instance == null)
             {
-                Logger.Log(LoggingLevel.Error, "UpdateActiveInstances Received a null instance.");
+                Logger.Error("UpdateActiveInstances Received a null instance.");
             }
 
             if (!ManagerState.ActiveInstances.ContainsKey(instance))
@@ -159,7 +156,7 @@ namespace AlarmyManager
                 lock (ManagerState.ActiveInstances)
                 {
                     ManagerState.ActiveInstances.Add(instance, DateTime.Now);
-                    Logger.Log(LoggingLevel.Trace, "Added a new instance to the ActiveInstances pool.");
+                    Logger.Trace("Added a new instance to the ActiveInstances pool.");
                 }
             }
             else
@@ -167,7 +164,7 @@ namespace AlarmyManager
                 lock (ManagerState.ActiveInstances)
                 {
                     ManagerState.ActiveInstances[instance] = DateTime.Now;
-                    Logger.Log(LoggingLevel.Trace, "Updated an existing instance in the ActiveInstances pool.");
+                    Logger.Trace("Updated an existing instance in the ActiveInstances pool.");
                 }
             }
         }
@@ -180,7 +177,7 @@ namespace AlarmyManager
         public override void OnDropConnection(ConnectionState state)
         {
             AlarmyServer.Clients.Remove(state);
-            Logger.Log(LoggingLevel.Trace, "Dropped the connection with {0}.", state.RemoteEndPoint.ToString());
+            Logger.Info("Dropped the connection with {0}.", state.RemoteEndPoint.ToString());
         }
     }
 }

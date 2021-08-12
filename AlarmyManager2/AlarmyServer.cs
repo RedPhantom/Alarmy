@@ -1,6 +1,7 @@
 ﻿using AlarmyLib;
 using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Security;
 using System.Text;
 
@@ -9,15 +10,12 @@ namespace AlarmyManager
     internal static class AlarmyServer
     {
         internal static List<ConnectionState> Clients = new List<ConnectionState>();
-        internal static UnifiedLogger Logger = new UnifiedLogger("AlarmyServer");
         internal static TcpServer InternalServer;
         
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
         internal static void Start(int port, ServerStartParameters parameters)
         {
-            Logger.EnableConsoleLogging();
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
-            Logger.EnableFileLogging(SharedWriter.Writer);
-
             InternalServer = new TcpServer(new AlarmyServiceProvider(parameters), port);
 
             SecureString CertificatePassword = GetCertificatePassword();
@@ -107,8 +105,14 @@ namespace AlarmyManager
                 Message = new PingMessage()
             };
 
-            byte[] pmBytes = Encoding.UTF8.GetBytes(pmw.Serialize() + Consts.EOFTag);
-            client.Write(pmBytes, 0, pmBytes.Length);
+            try
+            {
+                ClientWriteString(client, pmw.Serialize() + Consts.EOFTag);
+            }
+            catch (SocketException se)
+            {
+                Logger.Error(se, "Failed to write to client.");
+            }
         }
 
         internal static void TriggerAlarm(ConnectionState client, Alarm alarm) 
@@ -118,8 +122,7 @@ namespace AlarmyManager
                 Message = new ShowAlarmMessage(alarm)
             };
 
-            byte[] amBytes = Encoding.UTF8.GetBytes(sam.Serialize() + Consts.EOFTag);
-            client.Write(amBytes, 0, amBytes.Length);
+            ClientWriteString(client, sam.Serialize() + Consts.EOFTag);
         }
 
         internal static void PingClients()
@@ -128,6 +131,12 @@ namespace AlarmyManager
             {
                 PingClient(client);
             }
+        }
+
+        internal static void ClientWriteString(ConnectionState client, string s)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            client.Write(bytes, 0, bytes.Length);
         }
     }
 }

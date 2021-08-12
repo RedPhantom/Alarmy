@@ -21,7 +21,7 @@ namespace Alarmy
 
     internal static class AlarmyService
     {
-        private static readonly UnifiedLogger Logger = new UnifiedLogger("AlarmyService");
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         internal static void Start()
         {
@@ -46,7 +46,7 @@ namespace Alarmy
             }
             catch (Exception e)
             {
-                Logger.Log(LoggingLevel.Error, "Failed stopping the service provider: \n{0}.", e);
+                Logger.Error(e, "Failed stopping the service provider.");
             }
         }
     }

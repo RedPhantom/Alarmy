@@ -16,6 +16,11 @@ namespace AlarmyManager
         public const int MaxServerConnections = 100;
 
         /// <summary>
+        /// Whether the server is currently operating.
+        /// </summary>
+        public bool IsRunning { get; private set; } = false;
+
+        /// <summary>
         /// Port from which to serve clients.
         /// </summary>
         private readonly int Port;
@@ -50,7 +55,7 @@ namespace AlarmyManager
         /// </summary>
         private readonly AsyncCallback ReceivedDataReady;
 
-        private readonly UnifiedLogger Logger = new UnifiedLogger("TcpServer");
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Server's SSL certificate.
@@ -63,10 +68,6 @@ namespace AlarmyManager
         /// </summary>
         public TcpServer(TcpServiceProvider provider, int port)
         {
-            Logger.EnableConsoleLogging();
-            Logger.EnableEventLogLogging(EventLogger.EventLogSource.AlarmyManager);
-            Logger.EnableFileLogging(SharedWriter.Writer);
-
             Provider = provider;
             Port = port;
             Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -89,26 +90,30 @@ namespace AlarmyManager
             try
             {
                 serverCertificate = new X509Certificate2(certificatePath, certificatePassword);
-                Logger.Log(LoggingLevel.Trace, "Certificate activation successful.");
+                Logger.Trace("Certificate activation successful.");
 
                 Listener.Bind(new IPEndPoint(IPAddress.Loopback, Port));
                 Listener.Listen(100);
                 Listener.BeginAccept(ConnectionReady, null);
-                Logger.Log(LoggingLevel.Trace, "Starting to listen for connections.");
-                return true;
+                Logger.Trace("Starting to listen for connections.");
+
+                IsRunning = true;
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("password"))
                 {
-                    Logger.Log(LoggingLevel.Critical, ex.Message);
+                    Logger.Error(ex, "Certificate activation error.");
                 }
                 else
                 {
-                    Logger.Log(LoggingLevel.Critical, "Error starting server: {0}.", ex.Message);
+                    Logger.Error(ex, "Error starting server.");
                 }
-                return false;
+
+                IsRunning = false;
             }
+
+            return IsRunning;
         }
 
         /// <summary>
@@ -120,7 +125,7 @@ namespace AlarmyManager
             {
                 if (Listener == null)
                 { 
-                    return; 
+                    return;
                 }
 
                 Socket conn = Listener.EndAccept(ar);
@@ -171,7 +176,7 @@ namespace AlarmyManager
             }
             catch (Exception ex)
             {
-                Logger.Log(LoggingLevel.Error, "Error accepting a connection: {0}.", ex.Message);
+                Logger.Error(ex, "Error accepting a connection.");
             }
 
             // Start the ReceiveData callback loop.
@@ -182,7 +187,7 @@ namespace AlarmyManager
             }
             catch (System.IO.IOException ioe)
             {
-                Logger.Log(LoggingLevel.Error, "Failed to authenticate client via SSL: {0}", ioe.Message);
+                Logger.Error(ioe, "Failed to authenticate client via SSL.");
             }
             
 
@@ -221,7 +226,7 @@ namespace AlarmyManager
                 }
                 catch (Exception ex)
                 {
-                    Logger.Log(LoggingLevel.Error, "Error propagating OnReceiveData: {0}", ex);
+                    Logger.Error(ex, "Error propagating OnReceiveData.");
                 }
 
                 // Resume the ReceivedData callback loop.
@@ -237,6 +242,11 @@ namespace AlarmyManager
         /// </summary>
         public void Stop()
         {
+            if (!IsRunning)
+            {
+                return;
+            }
+
             lock (this)
             {
                 Listener.Close();
@@ -258,6 +268,8 @@ namespace AlarmyManager
                     st._conn.Close();
                 }
                 CurrentConnections.Clear();
+
+                IsRunning = false;
             }
         }
 
@@ -266,7 +278,7 @@ namespace AlarmyManager
         /// </summary>
         internal void DropConnection(ConnectionState st)
         {
-            Logger.Log(LoggingLevel.Trace, "Dropping a connection from {0}.", st.RemoteEndPoint.ToString());
+            Logger.Trace("Dropping a connection from {0}.", st.RemoteEndPoint.ToString());
             lock (this)
             {
                 st._conn.Shutdown(SocketShutdown.Both);

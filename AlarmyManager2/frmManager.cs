@@ -21,7 +21,14 @@ namespace AlarmyManager
 
         private void frmManager_Load(object sender, EventArgs e)
         {
+            // Allocate and set up console.
+            AllocConsole();
+            Console.Title = "Alarmy Manager";
+
+            // Set the windoe title.
             Text = string.Format("Alarmy Manager v{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            
+            // Start the server.
             StartServer();
         }
 
@@ -34,11 +41,11 @@ namespace AlarmyManager
         /// </summary>
         private void StartServer()
         {
-            AllocConsole();
-            Console.Title = "Alarmy Manager";
+            lblStatus.Text = "Waiting for server start...";
 
             try
             {
+                btnStopServer.Enabled = false;
                 ServerLauncher ServerLauncher = new ServerLauncher(Properties.Settings.Default.ServicePort);
                 ServerThread = new Thread(() => ServerLauncher.Start(new ServerStartParameters(OnInstancesUpdate, OnServerStart)));
                 ServerThread.Start();
@@ -49,6 +56,22 @@ namespace AlarmyManager
             }
         }
         
+        private void StopServer()
+        {
+            try
+            {
+                btnStopServer.Enabled = false;
+                AlarmyServer.Stop();
+                ServerThread.Abort();
+                btnStopServer.Text = "Start Server";
+                btnStopServer.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("Failed to stop the server: {0}.", ex.Message));
+            }
+        }
+
         /// <summary>
         /// Select all users in the user list.
         /// </summary>
@@ -152,6 +175,9 @@ namespace AlarmyManager
             lblStatus.Owner.Invoke((MethodInvoker)delegate 
             {
                 lblStatus.Text = "Ready.";
+
+                btnStopServer.Text = "Stop Server";
+                btnStopServer.Enabled = true;
             });
         }
 
@@ -184,13 +210,18 @@ namespace AlarmyManager
 
         private void btnStopServer_Click(object sender, EventArgs e)
         {
-            lblStatus.Text = "Stopping server...";
-            AlarmyServer.Stop();
-            lblStatus.Text = "Server stopped.";
-            
-
-            // TODO: this is a temp. fix due to object disposed exception
-            Application.Exit();
+            if (AlarmyServer.InternalServer.IsRunning)
+            {
+                lblStatus.Text = "Stopping server...";
+                StopServer();
+                lblStatus.Text = "Server stopped.";
+            }
+            else
+            {
+                lblStatus.Text = "Stopping server...";
+                StartServer();
+                lblStatus.Text = "Server stopped.";
+            }
         }
 
         private void tmrLastSeen_Tick(object sender, EventArgs e)
