@@ -62,6 +62,10 @@ namespace AlarmyManager
             {
                 btnStopServer.Enabled = false;
                 AlarmyServer.Stop();
+
+                // TODO: make sure stopping and starting the server over and over
+                // again doesn't create zombie threads. It shouldn't, since
+                // we're re-setting the ServerThread variable each time.
                 ServerThread.Abort();
                 btnStopServer.Text = "Start Server";
                 btnStopServer.Enabled = true;
