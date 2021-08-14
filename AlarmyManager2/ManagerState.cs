@@ -9,6 +9,6 @@ namespace AlarmyManager
         /// <summary>
         /// Holds all connected clients and time of last contact.
         /// </summary>
-        public static Dictionary<Instance, DateTime> ActiveInstances = new Dictionary<Instance, DateTime>();
+        public static Dictionary<Instance, DateTime> s_activeInstances = new Dictionary<Instance, DateTime>();
     }
 }

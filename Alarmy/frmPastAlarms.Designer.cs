@@ -29,6 +29,7 @@ namespace Alarmy
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPastAlarms));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.lbPastAlarms = new System.Windows.Forms.ListBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
@@ -118,6 +119,7 @@ namespace Alarmy
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.splitContainer1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "frmPastAlarms";
             this.Text = "Past Alarms";
             this.Load += new System.EventHandler(this.frmPastAlarms_Load);

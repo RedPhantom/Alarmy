@@ -94,6 +94,7 @@ namespace Alarmy
             this.btnValidateAuthenticity.TabIndex = 2;
             this.btnValidateAuthenticity.TabStop = true;
             this.btnValidateAuthenticity.Text = "Validate Authenticity - view online";
+            this.btnValidateAuthenticity.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.btnValidateAuthenticity_LinkClicked);
             this.btnValidateAuthenticity.MouseHover += new System.EventHandler(this.btnValidateAuthenticity_MouseHover);
             // 
             // notifyIcon1

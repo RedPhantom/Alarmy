@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace Alarmy
 {
-    public partial class frmPastAlarms : Form
+    internal partial class frmPastAlarms : Form
     {
         public frmPastAlarms()
         {
@@ -13,7 +13,7 @@ namespace Alarmy
 
         private void frmPastAlarms_Load(object sender, EventArgs e)
         {
-            foreach (Alarm alarm in AlarmyState.PastAlarms)
+            foreach (Alarm alarm in AlarmyState.s_pastAlarms)
             {
                 lbPastAlarms.Items.Add(alarm);
             }

@@ -21,16 +21,18 @@ namespace Alarmy
 
     internal static class AlarmyService
     {
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
+        private static Thread _serviceThread;
 
         internal static void Start()
         {
             try
             {
-                Thread t = new Thread(new ThreadStart(() => {
-                    ServiceProvider.StartProvider();
+                Instance instance = Instance.GetInstance();
+                _serviceThread = new Thread(new ThreadStart(() => {
+                    ServiceProvider.StartProvider(instance);
                 }));
-                t.Start();
+                _serviceThread.Start();
             }
             catch
             {
@@ -43,18 +45,21 @@ namespace Alarmy
             try
             {
                 ServiceProvider.StopProvider();
+                Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Error,
+                    "Alarmy Service (Stopped)");
             }
             catch (Exception e)
             {
-                Logger.Error(e, "Failed stopping the service provider.");
+                s_logger.Error(e, "Failed stopping the service provider.");
             }
         }
     }
 
-    class AlarmyApplicationContext : ApplicationContext
+    internal class AlarmyApplicationContext : ApplicationContext
     {
-        private readonly NotifyIcon trayIcon;
-        private const string defaultTrayIconText = "Alarmy Service";
+        public const string DefaultTrayIconText = "Alarmy Service";
+        
+        private readonly NotifyIcon _trayIcon;
         
         public enum TrayIconStatus
         {
@@ -64,9 +69,9 @@ namespace Alarmy
 
         public AlarmyApplicationContext()
         {
-            trayIcon = new NotifyIcon()
+            _trayIcon = new NotifyIcon()
             {
-                Icon = Properties.Resources.NotificationAlert_16x,
+                Icon = Properties.Resources.Alarmy,
                 ContextMenu = new ContextMenu(new MenuItem[]
                 {
                     new MenuItem("Recent Alarms", OnRecentAlarms),
@@ -75,30 +80,30 @@ namespace Alarmy
                     new MenuItem("Exit", OnExit)
                 }),
                 Visible = true,
-                Text = defaultTrayIconText
+                Text = DefaultTrayIconText
             };
 
             Start();
         }
 
-        public void SetTrayIconStatus(TrayIconStatus status, string text = null)
+        public void SetTrayIconStatus(TrayIconStatus status, string statusText = null)
         {
-            if (null == text)
+            if (null == statusText)
             {
-                trayIcon.Text = defaultTrayIconText;
+                _trayIcon.Text = DefaultTrayIconText;
             }
             else
             {
-                trayIcon.Text = text;
+                _trayIcon.Text = statusText;
             }
 
             if (TrayIconStatus.Error == status)
             {
-                trayIcon.Icon = Properties.Resources.NotificationAlert_Error;
+                _trayIcon.Icon = Properties.Resources.Alarmy_Red;
             }
             else
             {
-                trayIcon.Icon = Properties.Resources.NotificationAlert_16x;
+                _trayIcon.Icon = Properties.Resources.Alarmy;
             }
         }
 
@@ -131,7 +136,7 @@ namespace Alarmy
             AlarmyService.Stop();
 
             // Hide the tray icon and stop the application.
-            trayIcon.Visible = false;
+            _trayIcon.Visible = false;
             Application.Exit();
         }
     }

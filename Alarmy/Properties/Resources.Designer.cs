@@ -63,9 +63,9 @@ namespace Alarmy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon NotificationAlert_16x {
+        internal static System.Drawing.Icon Alarmy {
             get {
-                object obj = ResourceManager.GetObject("NotificationAlert_16x", resourceCulture);
+                object obj = ResourceManager.GetObject("Alarmy", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace Alarmy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon NotificationAlert_Error {
+        internal static System.Drawing.Icon Alarmy_Red {
             get {
-                object obj = ResourceManager.GetObject("NotificationAlert_Error", resourceCulture);
+                object obj = ResourceManager.GetObject("Alarmy_Red", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }

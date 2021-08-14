@@ -59,5 +59,25 @@ namespace AlarmyManager.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap StatusHelp_16x {
+            get {
+                object obj = ResourceManager.GetObject("StatusHelp_16x", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap StatusInformation_16x {
+            get {
+                object obj = ResourceManager.GetObject("StatusInformation_16x", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

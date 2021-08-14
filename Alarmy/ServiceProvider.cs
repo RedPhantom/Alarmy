@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,29 +12,32 @@ namespace Alarmy
     /// </summary>
     public static class ServiceProvider
     {
-        private static SynchronousClient Client;
+        private static SynchronousClient s_client;
+        private static Instance s_instance;
 
-        private static bool ShouldAttemtReconnecting = true;
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static bool s_shouldAttemtReconnecting = true;
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Start communication with the Alarmy server.
         /// </summary>
-        public static void StartProvider()
+        /// <param name="instance">The identity instance of this client.</param>
+        public static void StartProvider(Instance instance)
         {
-            Instance instance = Instance.GetInstance();
+            s_instance = instance;
+            s_shouldAttemtReconnecting = true;
 
-            while (ShouldAttemtReconnecting)
+            while (s_shouldAttemtReconnecting)
             {
                 try
                 {
-                    Client = new SynchronousClient(Properties.Settings.Default.ServiceURL,
+                    s_client = new SynchronousClient(Properties.Settings.Default.ServiceURL,
                     Properties.Settings.Default.ServicePort);
-                    Client.Start();
+                    s_client.Start();
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Failed to start the client:\n" + e.ToString(), "Error");
+                    MessageBox.Show($"Failed to start the client:\n{e}", "Error");
                     return;
                 }
 
@@ -49,17 +51,17 @@ namespace Alarmy
                 initMessageWrapper.Message = ssm;
 
                 // Send the initialization message. Adding a few space characters to flush the buffer.
-                Client.Send(bufferFlush + initMessageWrapper.Serialize());
+                s_client.Send(bufferFlush + initMessageWrapper.Serialize());
 
                 // Start the communication loop.
-                Communicate(instance);
+                Communicate();
 
                 // If we returned from the loop, something went wrong. Close the client and try again.
-                Client.Stop();
+                s_client.Stop();
             }
         }
 
-        private static void Communicate(Instance instance)
+        private static void Communicate()
         {
             string data;
 
@@ -67,14 +69,14 @@ namespace Alarmy
             {
                 try
                 {
-                    data = Client.Receive();
+                    data = s_client.Receive();
 
                     // Parse the data. Currently only one message type is supported.
 
                     if (null != data)
                     {
                         MessageWrapperContent content = MessageWrapper.Deserialize(data);
-                        HandleMessageContent(content, instance);
+                        HandleMessageContent(content);
                     }
                 }
                 catch (SocketException se)
@@ -82,18 +84,18 @@ namespace Alarmy
                     // The server crashed / closed without disconnecting the client.
                     if (SocketError.ConnectionReset == se.SocketErrorCode)
                     {
-                        Logger.Warn("The server stopped responding without disconnecting the client.");
+                        s_logger.Warn("The server stopped responding without disconnecting the client.");
                     }
                     else
                     {
-                        Logger.Warn(se, "Failed to retrieve data from the server.");
+                        s_logger.Warn(se, "Failed to retrieve data from the server.");
                     }
 
                     return;
                 }
                 catch (Exception e)
                 {
-                    Logger.Fatal(e, "Stopping service due to an exception.");
+                    s_logger.Fatal(e, "Stopping service due to an unhandeled exception.");
 
                     // No matter the exception, stop the provider.
                     StopProvider();
@@ -106,8 +108,7 @@ namespace Alarmy
         /// Handle possible messages received from the server.
         /// </summary>
         /// <param name="content">Object containing the message and its type for casting.</param>
-        /// <param name="instance">Instance of the service.</param>
-        private static void HandleMessageContent(MessageWrapperContent content, Instance instance)
+        private static void HandleMessageContent(MessageWrapperContent content)
         {
             Dictionary<Type, Action> @switch = new Dictionary<Type, Action> {
                 // ShowAlarmMessage
@@ -115,9 +116,9 @@ namespace Alarmy
                 { typeof(ShowAlarmMessage), () => {
                     ShowAlarmMessage sam = (ShowAlarmMessage)content.Message;
 
-                    lock (AlarmyState.PastAlarms)
+                    lock (AlarmyState.s_pastAlarms)
                     {
-                        AlarmyState.PastAlarms.Add(sam.Alarm);
+                        AlarmyState.s_pastAlarms.Add(sam.Alarm);
                     }
 
                     // We start the alarm on a new thread so after Show() is called and we return to wait
@@ -135,15 +136,15 @@ namespace Alarmy
                 { typeof(PingMessage), () =>
                 {
                     MessageWrapper<PingResponse> prWrapper = new MessageWrapper<PingResponse>();
-                    PingResponse pr = new PingResponse(instance);
+                    PingResponse pr = new PingResponse(s_instance);
                     prWrapper.Message = pr;
-                    Client.Send(prWrapper.Serialize());
+                    s_client.Send(prWrapper.Serialize());
                 } },
 
                 { typeof(ErrorMessage), () =>
                 {
                     ErrorMessage em = (ErrorMessage)content.Message;
-                    Logger.Error("Received a code {0} error message from the server: \n{1}", em.Code, em.Text ?? "<no additional data>");
+                    s_logger.Error($"Received a code {em.Code} error message from the server: \n{em.Text ?? "<no additional data>"}");
                 } }
             };
 
@@ -153,7 +154,7 @@ namespace Alarmy
             }
             catch (KeyNotFoundException ke)
             {
-                Logger.Warn(ke, "Received an unexpected message type: {0}.", content.Type);
+                s_logger.Warn(ke, $"Received an unexpected message type: {content.Type}.");
             }
         }
 
@@ -162,25 +163,8 @@ namespace Alarmy
         /// </summary>
         public static void StopProvider()
         {
-            Client.Stop();
-        }
-
-        /// <summary>
-        /// Send a KeepAliveResponse message to the Alarmy server. Receives arguments via <see cref="KeepAliveParams"/>.
-        /// </summary>
-        private static void PeriodicKeepAlive(object sender, DoWorkEventArgs e)
-        {
-            KeepAliveParams args = (KeepAliveParams)e.Argument;
-
-            while (!e.Cancel)
-            {
-                MessageWrapper<KeepAliveResponse> wrapper = new MessageWrapper<KeepAliveResponse>();
-                KeepAliveResponse kam = new KeepAliveResponse(args.Instance);
-                wrapper.Message = kam;
-
-                Client.Send(wrapper.Serialize());
-                Thread.Sleep(args.Interval);
-            }
+            s_shouldAttemtReconnecting = false;
+            s_client.Stop();
         }
     }
 

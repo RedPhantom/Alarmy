@@ -12,12 +12,12 @@ namespace Alarmy
         public IPAddress IPAddress { get; internal set; }
         public int Port { get; internal set; }
 
-        private static readonly TimeSpan ReconnectAttemptWait = new TimeSpan(hours: 0, minutes: 0, seconds: 15);
+        private static readonly TimeSpan s_reconnectAttemptWait = new TimeSpan(hours: 0, minutes: 0, seconds: 15);
         private const int ZeroBytesReceivedAttempts = 3;
 
-        private readonly IPEndPoint remoteEP;
-        private readonly Socket sender;
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private readonly IPEndPoint _remoteEP;
+        private readonly Socket _sender;
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Create a new TCP Synchronous client.
@@ -29,12 +29,8 @@ namespace Alarmy
             IPAddress = IPAddress.Parse(address);
             Port = port;
 
-            remoteEP = new IPEndPoint(IPAddress, Port);
-            sender = new Socket(IPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
-            // We must set a Receive timeout, otherwise the socket would wait for data to
-            // be received and won't send its KeepAlive messages.
-            //sender.ReceiveTimeout = Consts.ReceiveTimeout;
+            _remoteEP = new IPEndPoint(IPAddress, Port);
+            _sender = new Socket(IPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
 
         /// <summary>
@@ -49,25 +45,25 @@ namespace Alarmy
         /// <returns>The endpoint to which a successful connection was made.</returns>
         public EndPoint Start()
         {
-            while (!sender.Connected)
+            while (!_sender.Connected)
             {
                 try
                 {
-                    sender.Connect(remoteEP);
+                    _sender.Connect(_remoteEP);
                     Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Regular);
                 }
                 catch (SocketException se)
                 {
                     if (SocketError.ConnectionRefused != se.SocketErrorCode)
                     {
-                        Logger.Error(se, "Failed to connect to the server.");
+                        s_logger.Error(se, "Failed to connect to the server.");
                     }
                     Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Error,
-                        "Failed to connect to the Alarmy Server. Retyring in " + ReconnectAttemptWait.TotalSeconds + " seconds.");
-                    System.Threading.Thread.Sleep(ReconnectAttemptWait);
+                        $"Failed to connect to the Alarmy Server. Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
+                    System.Threading.Thread.Sleep(s_reconnectAttemptWait);
                 }
             }
-            return sender.RemoteEndPoint;
+            return _sender.RemoteEndPoint;
         }
 
         /// <summary>
@@ -78,8 +74,8 @@ namespace Alarmy
         {
             try 
             {
-                sender.Shutdown(SocketShutdown.Both);
-                sender.Close();
+                _sender.Shutdown(SocketShutdown.Both);
+                _sender.Close();
             }
             catch 
             { 
@@ -113,10 +109,10 @@ namespace Alarmy
                     // If we attempted to send data but failed for three consecutive times, raise exception.
                     if (zeroBytesSentCounter == ZeroBytesReceivedAttempts)
                     {
-                        Logger.Error("Attempted to send data but failed for {0} consecutive times.", zeroBytesSentCounter);
+                        s_logger.Error($"Attempted to send data but failed for {zeroBytesSentCounter} consecutive times.");
                     }
 
-                    bytesSent = sender.Send(msg);
+                    bytesSent = _sender.Send(msg);
                     if (bytesSent == 0)
                     {
                         zeroBytesSentCounter++;
@@ -156,7 +152,7 @@ namespace Alarmy
 
                 do
                 {
-                    bytesReceived = sender.Receive(buffer);
+                    bytesReceived = _sender.Receive(buffer);
 
                     // Get rid of all \0 bytes.
                     data += Encoding.UTF8.GetString(buffer.Take(bytesReceived).ToArray());
@@ -164,12 +160,12 @@ namespace Alarmy
                     // Clean the buffer.
                     buffer = new byte[Consts.BufferSize];
                 }
-                while (sender.Available > 0);
+                while (_sender.Available > 0);
 
                 // Make sure the EOF tag exists in the received data and is at the correct position.
                 if (!data.EndsWith(Consts.EOFTag))
                 {
-                    Logger.Warn("Received data that doesn't end with an EOF Tag:\n{0}", data);
+                    s_logger.Warn($"Received data that doesn't end with an EOF Tag:\n{data}");
                 }
 
                 // Returen the data without the EOF Tag.

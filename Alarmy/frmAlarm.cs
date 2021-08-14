@@ -1,12 +1,16 @@
 ﻿using AlarmyLib;
 using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Alarmy
 {
-    public partial class frmAlarm : Form
+    internal partial class frmAlarm : Form
     {
+        private readonly string IndividualAlarmUrl = $@"http://{Properties.Settings.Default.ServiceURL}/Alarms/";
+        private Alarm _alarm;
+
         public frmAlarm()
         {
             InitializeComponent();
@@ -14,10 +18,10 @@ namespace Alarmy
 
         private void frmAlarm_Load(object sender, EventArgs e)
         {
-            Text = string.Format("Alarmy v{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Text = $"Alarmy v{Assembly.GetExecutingAssembly().GetName().Version}";
         }
 
-        public void LoadAlarm(Alarm alarm)
+        internal void LoadAlarm(Alarm alarm)
         {
             if (alarm.IsRtl)
             {
@@ -26,6 +30,8 @@ namespace Alarmy
 
             lblTitle.Text = alarm.Title;
             rtbContent.Rtf = alarm.Content;
+
+            _alarm = alarm;
         }
 
         private void btnValidateAuthenticity_MouseHover(object sender, EventArgs e)
@@ -51,6 +57,19 @@ namespace Alarmy
             notifyIcon1.Text = trimmedMessage;
             notifyIcon1.ShowBalloonTip(0);
             tmrShowNotification.Enabled = false;
+        }
+
+        private void btnValidateAuthenticity_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Regex rgx = new Regex(@"^[a-zA-Z0-9\-_]+$");
+            if (rgx.IsMatch(_alarm.ID))
+            {
+                System.Diagnostics.Process.Start(IndividualAlarmUrl + _alarm.ID);
+            }
+            else
+            {
+                MessageBox.Show($"Alarm possibly compromised: ID = {_alarm.ID}");
+            }
         }
     }
 }

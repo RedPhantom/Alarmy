@@ -9,17 +9,17 @@ namespace AlarmyLib
     /// </summary>
     public class Instance : IComparable, IEquatable<Instance>
     {
-        // Since this object is created from serialization, its public properties must be writable.
-        public string UserName { get; set; }
+        // Since this object is created from serialization, its public properties must be publicly writable.
+        public string Username { get; set; }
         public string ComputerName { get; set; }
 
-        public Instance(string userName, string computerName)
+        public Instance(string username, string computerName)
         {
-            if (userName.Length == 0)
+            if (username.Length == 0)
             {
-                throw new ArgumentException("UserName can't be empty.");
+                throw new ArgumentException("Username can't be empty.");
             }
-            UserName = userName;
+            Username = username;
 
             if (computerName.Length == 0)
             {
@@ -45,28 +45,28 @@ namespace AlarmyLib
         {
             Instance other = (Instance)obj;
 
-            return string.Compare(UserName, other.UserName) + string.Compare(ComputerName, other.ComputerName);
+            return string.Compare(Username, other.Username) + string.Compare(ComputerName, other.ComputerName);
         }
 
         public bool Equals(Instance other)
         {
-            return (UserName == other.UserName) && (ComputerName == other.ComputerName);
+            return (Username == other.Username) && (ComputerName == other.ComputerName);
         }
 
         public override int GetHashCode()
         {
-            return UserName.GetHashCode() ^ ComputerName.GetHashCode();
+            return Username.GetHashCode() ^ ComputerName.GetHashCode();
         }
 
         public override string ToString()
         {
-            if (UserName.Contains(ComputerName))
+            if (Username.Contains(ComputerName))
             {
-                return UserName;
+                return Username;
             }
             else
             {
-                return string.Format(@"{0}\{1}", UserName, ComputerName);
+                return $@"{Username}\{ComputerName}";
             }
         }
     }

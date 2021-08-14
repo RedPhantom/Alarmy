@@ -14,6 +14,12 @@ namespace AlarmyManager
         private readonly Dictionary<Instance, ConnectionState> InstanceToConnection = 
             new Dictionary<Instance, ConnectionState>();
 
+        private const string ColumnNameInstance = "colInstance";
+        private const string ColumnHeaderInstance = "Instance";
+
+        private const string ColumnNameLastSeen = "colLastSeen";
+        private const string ColumnHeaderLastSeen = "Last Seen";
+
         public frmManager()
         {
             InitializeComponent();
@@ -26,10 +32,14 @@ namespace AlarmyManager
             Console.Title = "Alarmy Manager";
 
             // Set the windoe title.
-            Text = string.Format("Alarmy Manager v{0}", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Text = $"Alarmy Manager v{Assembly.GetExecutingAssembly().GetName().Version}";
             
             // Start the server.
             StartServer();
+
+            // Add columns to the data grid view.
+            dgvLastSeen.Columns.Add(ColumnNameInstance, ColumnHeaderInstance);
+            dgvLastSeen.Columns.Add(ColumnNameLastSeen, ColumnHeaderLastSeen);
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -45,14 +55,14 @@ namespace AlarmyManager
 
             try
             {
-                btnStopServer.Enabled = false;
+                btnToggleServer.Enabled = false;
                 ServerLauncher ServerLauncher = new ServerLauncher(Properties.Settings.Default.ServicePort);
                 ServerThread = new Thread(() => ServerLauncher.Start(new ServerStartParameters(OnInstancesUpdate, OnServerStart)));
                 ServerThread.Start();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Failed to start the server: {0}.", ex.Message));
+                MessageBox.Show($"Failed to start the server: {ex}.");
             }
         }
         
@@ -60,20 +70,22 @@ namespace AlarmyManager
         {
             try
             {
-                btnStopServer.Enabled = false;
+                btnToggleServer.Enabled = false;
                 AlarmyServer.Stop();
 
                 // TODO: make sure stopping and starting the server over and over
                 // again doesn't create zombie threads. It shouldn't, since
                 // we're re-setting the ServerThread variable each time.
                 ServerThread.Abort();
-                btnStopServer.Text = "Start Server";
-                btnStopServer.Enabled = true;
+                btnToggleServer.Text = "Start Server";
+                btnToggleServer.Enabled = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("Failed to stop the server: {0}.", ex.Message));
+                MessageBox.Show($"Failed to stop the server: {ex.Message}.");
             }
+
+            UpdateServerStatus();
         }
 
         /// <summary>
@@ -101,7 +113,9 @@ namespace AlarmyManager
         private void btnSend_Click(object sender, EventArgs e)
         {
             Alarm alarm;
-            
+
+            tbUid.Text = Alarm.GenerateID();
+
             if (0 == clbUsers.CheckedItems.Count)
             {
                 lblStatus.Text = "No users are selected.";
@@ -135,7 +149,7 @@ namespace AlarmyManager
             foreach (Instance instance in clbUsers.CheckedItems)
             {
                 ConnectionState client = InstanceToConnection[instance];
-                lblStatus.Text = string.Format("Sending alarm to {0}...", instance);
+                lblStatus.Text = $"Sending alarm to {instance}...";
                 AlarmyServer.TriggerAlarm(client, alarm);
             }
             lblStatus.Text = "Alarm deployment complete.";
@@ -144,7 +158,7 @@ namespace AlarmyManager
 
         private Alarm GetAlarmFromForm()
         {
-            return new Alarm(cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
+            return new Alarm(tbUid.Text, cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -152,9 +166,9 @@ namespace AlarmyManager
             clbUsers.Items.Clear();
             dgvLastSeen.Rows.Clear();
 
-            lock (ManagerState.ActiveInstances)
+            lock (ManagerState.s_activeInstances)
             {
-                ManagerState.ActiveInstances.Clear();
+                ManagerState.s_activeInstances.Clear();
             }
 
             AlarmyServer.PingClients();
@@ -180,8 +194,10 @@ namespace AlarmyManager
             {
                 lblStatus.Text = "Ready.";
 
-                btnStopServer.Text = "Stop Server";
-                btnStopServer.Enabled = true;
+                btnToggleServer.Text = "Stop Server";
+                btnToggleServer.Enabled = true;
+
+                UpdateServerStatus();
             });
         }
 
@@ -199,6 +215,36 @@ namespace AlarmyManager
                     clbUsers.Items.Add(instance);
                 });
 
+                if (InstanceToConnection.ContainsKey(instance))
+                {
+                    if (InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint)
+                    {
+                        // Update the Instance's connection.
+                        UpdateInstanceToConnection(instance, connection);
+                    }
+                }
+                else
+                {
+                    // Add the instance's connection.
+                    UpdateInstanceToConnection(instance, connection);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Add or update an <see cref="Instance"/>'s <see cref="ConnectionState"/>.
+        /// </summary>
+        private void UpdateInstanceToConnection(Instance instance, ConnectionState connection)
+        {
+            if (InstanceToConnection.ContainsKey(instance))
+            {
+                lock (InstanceToConnection)
+                {
+                    InstanceToConnection[instance] = connection;
+                }
+            }
+            else
+            {
                 lock (InstanceToConnection)
                 {
                     InstanceToConnection.Add(instance, connection);
@@ -212,9 +258,9 @@ namespace AlarmyManager
             tbTitle.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
         }
 
-        private void btnStopServer_Click(object sender, EventArgs e)
+        private void btnToggleServer_Click(object sender, EventArgs e)
         {
-            if (AlarmyServer.InternalServer.IsRunning)
+            if (AlarmyServer.s_internalServer.IsRunning)
             {
                 lblStatus.Text = "Stopping server...";
                 StopServer();
@@ -235,17 +281,18 @@ namespace AlarmyManager
 
         private void UpdateLastSeen()
         {
-            foreach (Instance instance in ManagerState.ActiveInstances.Keys)
+            foreach (Instance instance in ManagerState.s_activeInstances.Keys)
             {
                 // Update the cell that holds the Last Seen time, or add the entire row if needed.
-                string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - ManagerState.ActiveInstances[instance], precision: 2);
+                string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - 
+                    ManagerState.s_activeInstances[instance], precision: 2);
                 bool foundCell = false;
 
                 foreach (DataGridViewRow row in dgvLastSeen.Rows)
                 {
-                    if (row.Cells[0].Value == instance)
+                    if (row.Cells[ColumnNameInstance].Value == instance)
                     {
-                        row.Cells[1].Value = humanizedLastSeen;
+                        row.Cells[ColumnNameLastSeen].Value = humanizedLastSeen;
                         foundCell = true;
                     }
                 }
@@ -279,7 +326,7 @@ namespace AlarmyManager
                 }
                 else
                 {
-                    lblStatus.Text = "Failed to find " + instance + " in the users list.";
+                    lblStatus.Text = $"Failed to find {instance} in the users list.";
                 }
             }
         }
@@ -291,7 +338,7 @@ namespace AlarmyManager
 
         private void btnStopServer_MouseHover(object sender, EventArgs e)
         {
-            lblHelp.Text = "Disconnect all clients and stop the server.";
+            lblHelp.Text = "Gracefully stop or start the server.";
         }
 
         private void cbRightToLeft_MouseHover(object sender, EventArgs e)
@@ -317,6 +364,20 @@ namespace AlarmyManager
         private void btnAllUsers_MouseHover(object sender, EventArgs e)
         {
             lblHelp.Text = "Select all users.";
+        }
+
+        private void UpdateServerStatus()
+        {
+            if (AlarmyServer.s_internalServer.IsRunning)
+            {
+                lblServerStatus.Text = "Running";
+                lblServerStatus.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
+            }
+            else
+            {
+                lblServerStatus.Text = "Stopped";
+                lblServerStatus.BackColor = System.Drawing.Color.FromArgb(255, 192, 192);
+            }
         }
     }
 }

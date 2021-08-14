@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace AlarmyLib
 {
@@ -23,10 +18,7 @@ namespace AlarmyLib
 
         public override string ToString()
         {
-            // No need to add the computer name since it usually appears in the UserName.
-            return string.Format("{0} ({1})",
-                Instance.UserName,
-                EndPoint.Address.ToString());
+            return $"{Instance} ({EndPoint.Address})";
         }
     }
 }

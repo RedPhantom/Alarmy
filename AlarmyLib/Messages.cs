@@ -86,7 +86,7 @@ namespace AlarmyLib
 
     public class PingMessage : BaseMessage
     {
-
+        // No data is included.
     }
 
     public class ErrorMessage : BaseMessage
@@ -116,19 +116,11 @@ namespace AlarmyLib
         }
     }
 
-    public class KeepAliveResponse : BaseResponse
-    {
-        public KeepAliveResponse(Instance instance) : base(instance)
-        {
-
-        }
-    }
-
     public class PingResponse : BaseResponse
     {
         public PingResponse(Instance instance) : base(instance)
         {
-
+            // No additional data is included.
         }
     }
 }

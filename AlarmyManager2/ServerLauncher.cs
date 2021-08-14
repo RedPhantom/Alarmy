@@ -10,7 +10,7 @@ namespace AlarmyManager
     {
         public int Port { get; }
 
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         public ServerLauncher(int port)
         {
@@ -26,17 +26,26 @@ namespace AlarmyManager
         /// </summary>
         public void Start(ServerStartParameters parameters)
         {
-            Logger.Info("Starting server on port {0}.", Port);
+            s_logger.Info($"Starting server on port {Port}.");
             AlarmyServer.Start(Port, parameters);
         }
     }
 
-    internal class ServerStartParameters
+    /// <summary>
+    /// Information to pass to the Alarmy service provider.
+    /// </summary>
+    public class ServerStartParameters
     {
-        internal EventHandler<InstancesChangeEventArgs> OnInstancesChange;
-        internal EventHandler<EventArgs> OnServerStart;
+        public EventHandler<InstancesChangeEventArgs> OnInstancesChange;
+        public EventHandler<EventArgs> OnServerStart;
 
-        public ServerStartParameters(EventHandler<InstancesChangeEventArgs> onInstancesChange,
+        /// <summary>
+        /// Create information to pass the server.
+        /// </summary>
+        /// <param name="onInstancesChange">Called when the instance pool changes.</param>
+        /// <param name="onServerStart">Called when the server starts successfully.</param>
+        public ServerStartParameters(
+            EventHandler<InstancesChangeEventArgs> onInstancesChange,
             EventHandler<EventArgs> onServerStart)
         {
             OnInstancesChange = onInstancesChange;
@@ -44,7 +53,10 @@ namespace AlarmyManager
         }
     }
 
-    internal class InstancesChangeEventArgs : EventArgs
+    /// <summary>
+    /// The instance pool has changed: a client has been added/removed/pinged.
+    /// </summary>
+    public class InstancesChangeEventArgs : EventArgs
     {
         public Instance Instance { get; private set; }
         public ConnectionState Connection { get; private set; }

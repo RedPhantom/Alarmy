@@ -5,6 +5,6 @@ namespace Alarmy
 {
     internal static class AlarmyState
     {
-        internal static List<Alarm> PastAlarms = new List<Alarm>();
+        internal static List<Alarm> s_pastAlarms = new List<Alarm>();
     }
 }

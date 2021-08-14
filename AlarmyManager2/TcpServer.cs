@@ -23,17 +23,17 @@ namespace AlarmyManager
         /// <summary>
         /// Port from which to serve clients.
         /// </summary>
-        private readonly int Port;
+        public readonly int Port;
 
         /// <summary>
         /// Socket on which to listen for connections.
         /// </summary>
-        private Socket Listener;
+        private Socket _listener;
 
         /// <summary>
         /// Service provider.
         /// </summary>
-        internal readonly TcpServiceProvider Provider;
+        internal readonly TcpServiceProvider _provider;
 
         /// <summary>
         /// Maximum number of concurrent connections.
@@ -43,24 +43,24 @@ namespace AlarmyManager
         /// <summary>
         /// Callback for when the connection is ready.
         /// </summary>
-        private readonly AsyncCallback ConnectionReady;
+        private readonly AsyncCallback _connectionReady;
 
         /// <summary>
         /// Callback for when the server accepts a new connection.
         /// </summary>
-        private readonly WaitCallback AcceptConnection;
+        private readonly WaitCallback _acceptConnection;
 
         /// <summary>
         /// Callback when data is received from a client.
         /// </summary>
-        private readonly AsyncCallback ReceivedDataReady;
+        private readonly AsyncCallback _receivedDataReady;
 
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Server's SSL certificate.
         /// </summary>
-        static X509Certificate serverCertificate = null;
+        private static X509Certificate s_serverCertificate = null;
 
         /// <summary>
         /// Initializes server. 
@@ -68,14 +68,14 @@ namespace AlarmyManager
         /// </summary>
         public TcpServer(TcpServiceProvider provider, int port)
         {
-            Provider = provider;
+            _provider = provider;
             Port = port;
-            Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             CurrentConnections = new ArrayList();
-            ConnectionReady = new AsyncCallback(ConnectionReady_Handler);
-            AcceptConnection = new WaitCallback(AcceptConnection_Handler);
-            ReceivedDataReady = new AsyncCallback(ReceivedDataReady_Handler);
+            _connectionReady = new AsyncCallback(ConnectionReady_Handler);
+            _acceptConnection = new WaitCallback(AcceptConnection_Handler);
+            _receivedDataReady = new AsyncCallback(ReceivedDataReady_Handler);
         }
 
         /// <summary>
@@ -89,13 +89,13 @@ namespace AlarmyManager
         {
             try
             {
-                serverCertificate = new X509Certificate2(certificatePath, certificatePassword);
-                Logger.Trace("Certificate activation successful.");
+                s_serverCertificate = new X509Certificate2(certificatePath, certificatePassword);
+                s_logger.Trace("Certificate activation successful.");
 
-                Listener.Bind(new IPEndPoint(IPAddress.Loopback, Port));
-                Listener.Listen(100);
-                Listener.BeginAccept(ConnectionReady, null);
-                Logger.Trace("Starting to listen for connections.");
+                _listener.Bind(new IPEndPoint(IPAddress.Loopback, Port));
+                _listener.Listen(100);
+                _listener.BeginAccept(_connectionReady, null);
+                s_logger.Trace("Starting to listen for connections.");
 
                 IsRunning = true;
             }
@@ -103,11 +103,11 @@ namespace AlarmyManager
             {
                 if (ex.Message.Contains("password"))
                 {
-                    Logger.Error(ex, "Certificate activation error.");
+                    s_logger.Error(ex, "Certificate activation error.");
                 }
                 else
                 {
-                    Logger.Error(ex, "Error starting server.");
+                    s_logger.Error(ex, "Error starting server.");
                 }
 
                 IsRunning = false;
@@ -123,12 +123,12 @@ namespace AlarmyManager
         {
             lock (this)
             {
-                if (Listener == null)
+                if (_listener == null)
                 { 
                     return;
                 }
 
-                Socket conn = Listener.EndAccept(ar);
+                Socket conn = _listener.EndAccept(ar);
 
                 if (CurrentConnections.Count >= _maxConnections)
                 {
@@ -143,23 +143,23 @@ namespace AlarmyManager
                 }
                 else
                 {
-                    // Construct the newly received connection/
+                    // Construct the newly received connection.
                     ConnectionState st = new ConnectionState
                     {
                         _conn = conn,
                         _server = this,
-                        _provider = (TcpServiceProvider)Provider.Clone(),
+                        _provider = (TcpServiceProvider)_provider.Clone(),
                         _buffer = new byte[4]
                     };
 
                     CurrentConnections.Add(st);
 
                     // Queue the rest of the job to be executed later.
-                    ThreadPool.QueueUserWorkItem(AcceptConnection, st);
+                    ThreadPool.QueueUserWorkItem(_acceptConnection, st);
                 }
 
                 // Resume the listening callback loop.
-                Listener.BeginAccept(ConnectionReady, null);
+                _listener.BeginAccept(_connectionReady, null);
             }
         }
 
@@ -176,24 +176,24 @@ namespace AlarmyManager
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error accepting a connection.");
+                s_logger.Error(ex, "Error accepting a connection.");
             }
 
             // Start the ReceiveData callback loop.
             try
             {
                 SslStream sslStream = new SslStream(new NetworkStream(st._conn), false);
-                sslStream.AuthenticateAsServer(serverCertificate, clientCertificateRequired: false, checkCertificateRevocation: true);
+                sslStream.AuthenticateAsServer(s_serverCertificate, clientCertificateRequired: false, checkCertificateRevocation: true);
             }
             catch (System.IO.IOException ioe)
             {
-                Logger.Error(ioe, "Failed to authenticate client via SSL.");
+                s_logger.Error(ioe, "Failed to authenticate client via SSL.");
             }
             
 
             if (st._conn.Connected)
             {
-                st._conn.BeginReceive(st._buffer, 0, 0, SocketFlags.None, ReceivedDataReady, st);
+                st._conn.BeginReceive(st._buffer, 0, 0, SocketFlags.None, _receivedDataReady, st);
             }
         }
 
@@ -226,13 +226,13 @@ namespace AlarmyManager
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "Error propagating OnReceiveData.");
+                    s_logger.Error(ex, "Error propagating OnReceiveData.");
                 }
 
                 // Resume the ReceivedData callback loop.
                 if (st._conn.Connected)
                 {
-                    st._conn.BeginReceive(st._buffer, 0, 0, SocketFlags.None, ReceivedDataReady, st);
+                    st._conn.BeginReceive(st._buffer, 0, 0, SocketFlags.None, _receivedDataReady, st);
                 }
             }
         }
@@ -249,8 +249,8 @@ namespace AlarmyManager
 
             lock (this)
             {
-                Listener.Close();
-                Listener = null;
+                _listener.Close();
+                _listener = null;
 
                 // Close all active connections.
                 foreach (object obj in CurrentConnections)
@@ -278,7 +278,7 @@ namespace AlarmyManager
         /// </summary>
         internal void DropConnection(ConnectionState st)
         {
-            Logger.Trace("Dropping a connection from {0}.", st.RemoteEndPoint.ToString());
+            s_logger.Trace($"Dropping a connection from {st.RemoteEndPoint}.");
             lock (this)
             {
                 st._conn.Shutdown(SocketShutdown.Both);

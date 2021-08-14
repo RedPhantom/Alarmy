@@ -9,34 +9,34 @@ namespace AlarmyManager
 {
     internal static class AlarmyServer
     {
-        internal static List<ConnectionState> Clients = new List<ConnectionState>();
-        internal static TcpServer InternalServer;
+        internal static List<ConnectionState> s_clients = new List<ConnectionState>();
+        internal static TcpServer s_internalServer;
         
-        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         internal static void Start(int port, ServerStartParameters parameters)
         {
-            InternalServer = new TcpServer(new AlarmyServiceProvider(parameters), port);
+            s_internalServer = new TcpServer(new AlarmyServiceProvider(parameters), port);
 
             SecureString CertificatePassword = GetCertificatePassword();
 
-            bool serverStartSuccessful = InternalServer.Start(Properties.Settings.Default.ServerCertificatePath, 
+            bool serverStartSuccessful = s_internalServer.Start(Properties.Settings.Default.ServerCertificatePath, 
                 CertificatePassword);
             if (serverStartSuccessful)
             {
-                parameters.OnServerStart(InternalServer, new EventArgs());
+                parameters.OnServerStart(s_internalServer, new EventArgs());
             }
         }
 
         // Stop the server.
         internal static void Stop()
         {
-            InternalServer.Stop();
+            s_internalServer.Stop();
         }
 
         internal static void OnApplicationExit(object sender, EventArgs e)
         {
-            Console.Write("\nStopping server... ");
+            Console.Write("\n\nStopping server... ");
             Stop();
             Console.WriteLine("Server stopped. Press any key to exit or close the console.");
             Console.ReadKey(intercept: true);
@@ -111,7 +111,7 @@ namespace AlarmyManager
             }
             catch (SocketException se)
             {
-                Logger.Error(se, "Failed to write to client.");
+                s_logger.Error(se, "Failed to write to client.");
             }
         }
 
@@ -127,7 +127,7 @@ namespace AlarmyManager
 
         internal static void PingClients()
         {
-            foreach (var client in Clients)
+            foreach (var client in s_clients)
             {
                 PingClient(client);
             }
