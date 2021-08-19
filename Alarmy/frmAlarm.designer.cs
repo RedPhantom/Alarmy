@@ -74,7 +74,7 @@ namespace Alarmy
             // 
             this.rtbContent.BackColor = System.Drawing.Color.White;
             this.rtbContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbContent.Cursor = System.Windows.Forms.Cursors.Default;
+            this.rtbContent.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.rtbContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rtbContent.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbContent.Location = new System.Drawing.Point(3, 50);

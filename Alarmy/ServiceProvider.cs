@@ -16,6 +16,7 @@ namespace Alarmy
         private static Instance s_instance;
 
         private static bool s_shouldAttemtReconnecting = true;
+
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace Alarmy
                 try
                 {
                     s_client = new SynchronousClient(Properties.Settings.Default.ServiceURL,
-                    Properties.Settings.Default.ServicePort);
+                        Properties.Settings.Default.ServicePort);
                     s_client.Start();
                 }
                 catch (Exception e)
@@ -65,6 +66,7 @@ namespace Alarmy
         {
             string data;
 
+            // TODO: change this Receive to BeginReceive so the thread can end gracefully when waiting for received data.
             while (true)
             {
                 try
@@ -73,7 +75,7 @@ namespace Alarmy
 
                     // Parse the data. Currently only one message type is supported.
 
-                    if (null != data)
+                    if (data is not null)
                     {
                         MessageWrapperContent content = MessageWrapper.Deserialize(data);
                         HandleMessageContent(content);
@@ -81,9 +83,9 @@ namespace Alarmy
                 }
                 catch (SocketException se)
                 {
-                    // The server crashed / closed without disconnecting the client.
                     if (SocketError.ConnectionReset == se.SocketErrorCode)
                     {
+                        // The server crashed / closed without disconnecting the client.
                         s_logger.Warn("The server stopped responding without disconnecting the client.");
                     }
                     else
@@ -98,7 +100,6 @@ namespace Alarmy
                     s_logger.Fatal(e, "Stopping service due to an unhandeled exception.");
 
                     // No matter the exception, stop the provider.
-                    StopProvider();
                     return;
                 }
             }
@@ -156,15 +157,6 @@ namespace Alarmy
             {
                 s_logger.Warn(ke, $"Received an unexpected message type: {content.Type}.");
             }
-        }
-
-        /// <summary>
-        /// Stop communication with the Alarmy server.
-        /// </summary>
-        public static void StopProvider()
-        {
-            s_shouldAttemtReconnecting = false;
-            s_client.Stop();
         }
     }
 

@@ -20,6 +20,9 @@ namespace AlarmyManager
         private const string ColumnNameLastSeen = "colLastSeen";
         private const string ColumnHeaderLastSeen = "Last Seen";
 
+        private readonly System.Drawing.Color LastSeenLongAgoBackground = System.Drawing.Color.FromArgb(220, 255, 255);
+        private readonly TimeSpan LastSeenLongAgo = new TimeSpan(hours: 1, minutes: 0, seconds: 0);
+
         public frmManager()
         {
             InitializeComponent();
@@ -76,7 +79,7 @@ namespace AlarmyManager
                 // TODO: make sure stopping and starting the server over and over
                 // again doesn't create zombie threads. It shouldn't, since
                 // we're re-setting the ServerThread variable each time.
-                ServerThread.Abort();
+                //ServerThread.Abort();
                 btnToggleServer.Text = "Start Server";
                 btnToggleServer.Enabled = true;
             }
@@ -141,6 +144,14 @@ namespace AlarmyManager
 
             // Construct the message for the alarm and send it.
             TriggerAlarmForClients(alarm);
+            
+            // Save the alarm so it's accessible for authenticity validation.
+            CreateAlarmFile(alarm);
+        }
+
+        private void CreateAlarmFile(Alarm alarm)
+        {
+            // TODO: implement.
         }
 
         private void TriggerAlarmForClients(Alarm alarm)
@@ -181,7 +192,17 @@ namespace AlarmyManager
         /// <remarks>Called from the server thread.</remarks>
         private void OnInstancesUpdate(object sender, InstancesChangeEventArgs args)
         {
+            // Update InstanceToConnection.
             UpdateInstances(args.Instance, args.Connection);
+
+            // Update the UI.
+            if (ListBox.NoMatches == clbUsers.FindStringExact(args.Instance.ToString()))
+            {
+                clbUsers.Invoke((MethodInvoker)delegate
+                {
+                    clbUsers.Items.Add(args.Instance);
+                });
+            }
         }
 
         /// <summary>
@@ -202,32 +223,24 @@ namespace AlarmyManager
         }
 
         /// <summary>
-        /// Update the users list box and the dictionary that links an instance and its last seen time to its index
+        /// Update the dictionary that links an instance and its last seen time to its index
         /// in the list box.
         /// </summary>
         /// <remarks>Called from the server thread.</remarks>
         private void UpdateInstances(Instance instance, ConnectionState connection)
         {
-            if (ListBox.NoMatches == clbUsers.FindStringExact(instance.ToString()))
+            if (InstanceToConnection.ContainsKey(instance))
             {
-                clbUsers.Invoke((MethodInvoker)delegate
+                if (InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint)
                 {
-                    clbUsers.Items.Add(instance);
-                });
-
-                if (InstanceToConnection.ContainsKey(instance))
-                {
-                    if (InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint)
-                    {
-                        // Update the Instance's connection.
-                        UpdateInstanceToConnection(instance, connection);
-                    }
-                }
-                else
-                {
-                    // Add the instance's connection.
+                    // Update the Instance's connection.
                     UpdateInstanceToConnection(instance, connection);
                 }
+            }
+            else
+            {
+                // Add the instance's connection.
+                UpdateInstanceToConnection(instance, connection);
             }
         }
 
@@ -284,8 +297,9 @@ namespace AlarmyManager
             foreach (Instance instance in ManagerState.s_activeInstances.Keys)
             {
                 // Update the cell that holds the Last Seen time, or add the entire row if needed.
+                DateTime lastSeen = ManagerState.s_activeInstances[instance];
                 string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - 
-                    ManagerState.s_activeInstances[instance], precision: 2);
+                    lastSeen , precision: 2);
                 bool foundCell = false;
 
                 foreach (DataGridViewRow row in dgvLastSeen.Rows)
@@ -293,6 +307,13 @@ namespace AlarmyManager
                     if (row.Cells[ColumnNameInstance].Value == instance)
                     {
                         row.Cells[ColumnNameLastSeen].Value = humanizedLastSeen;
+                        
+                        // Update the background of the cell if last seen time is a long time ago.
+                        if ((DateTime.Now - lastSeen) > LastSeenLongAgo)
+                        {
+                            row.Cells[ColumnNameLastSeen].Style.BackColor = LastSeenLongAgoBackground;
+                        }
+
                         foundCell = true;
                     }
                 }
@@ -300,7 +321,7 @@ namespace AlarmyManager
                 if (!foundCell)
                 {
                     dgvLastSeen.Rows.Add(instance, humanizedLastSeen);
-                }
+                }  
             }
         }
 

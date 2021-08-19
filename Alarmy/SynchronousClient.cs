@@ -58,7 +58,7 @@ namespace Alarmy
                     {
                         s_logger.Error(se, "Failed to connect to the server.");
                     }
-                    Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Error,
+                    Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
                         $"Failed to connect to the Alarmy Server. Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
                     System.Threading.Thread.Sleep(s_reconnectAttemptWait);
                 }

@@ -24,13 +24,16 @@ namespace Alarmy
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
         private static Thread _serviceThread;
 
+        // Set this reference bool to `true` to cause the client thread to stop.
+        private static bool s_shouldStop = false;
+
         internal static void Start()
         {
             try
             {
                 Instance instance = Instance.GetInstance();
                 _serviceThread = new Thread(new ThreadStart(() => {
-                    ServiceProvider.StartProvider(instance);
+                    ServiceProvider.StartProvider(instance, ref s_shouldStop);
                 }));
                 _serviceThread.Start();
             }
@@ -44,8 +47,8 @@ namespace Alarmy
         {
             try
             {
-                ServiceProvider.StopProvider();
-                Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Error,
+                s_shouldStop = true;
+                Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
                     "Alarmy Service (Stopped)");
             }
             catch (Exception e)
@@ -60,28 +63,30 @@ namespace Alarmy
         public const string DefaultTrayIconText = "Alarmy Service";
         
         private readonly NotifyIcon _trayIcon;
-        
+
+        // We always start the service disconnected, i.e. false.
+        private bool _isRunning = false;
+
         public enum TrayIconStatus
         {
             Regular,
-            Error
+            NotRunning
         }
 
         public AlarmyApplicationContext()
         {
-            _trayIcon = new NotifyIcon()
+            _trayIcon = new()
             {
                 Icon = Properties.Resources.Alarmy,
-                ContextMenu = new ContextMenu(new MenuItem[]
-                {
-                    new MenuItem("Recent Alarms", OnRecentAlarms),
-                    new MenuItem("Start Service", OnStart),
-                    new MenuItem("Stop Service", OnStop),
-                    new MenuItem("Exit", OnExit)
-                }),
+                ContextMenuStrip = new(),
                 Visible = true,
                 Text = DefaultTrayIconText
             };
+
+            _trayIcon.ContextMenuStrip.Items.Add("Recent Alarms", Properties.Resources.History_64px, OnRecentAlarms);
+            _trayIcon.ContextMenuStrip.Items.Add("Start Service", Properties.Resources.StatusRun_64px, OnStart);
+            _trayIcon.ContextMenuStrip.Items.Add("Stop Service", Properties.Resources.StatusStop_64px, OnStop);
+            _trayIcon.ContextMenuStrip.Items.Add("Exit", Properties.Resources.Exit_64px, OnExit);
 
             Start();
         }
@@ -97,7 +102,7 @@ namespace Alarmy
                 _trayIcon.Text = statusText;
             }
 
-            if (TrayIconStatus.Error == status)
+            if (TrayIconStatus.NotRunning == status)
             {
                 _trayIcon.Icon = Properties.Resources.Alarmy_Red;
             }
@@ -112,6 +117,14 @@ namespace Alarmy
             AlarmyService.Start();
         }
 
+        public void Stop()
+        {
+            if (_isRunning)
+            {
+                AlarmyService.Stop();
+            }
+        }
+
         private void OnRecentAlarms(object sender, EventArgs e)
         {
             frmPastAlarms frmPastAlarms = new frmPastAlarms();
@@ -121,7 +134,10 @@ namespace Alarmy
 
         public void OnStart(object sender, EventArgs e)
         {
-            Start();
+            if (!_isRunning)
+            {
+                Start();
+            }
         }
 
         public void OnStop(object sender, EventArgs e)
