@@ -52,20 +52,20 @@ namespace Alarmy
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 3;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(689, 318);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(689, 398);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // lblTitle
             // 
             this.lblTitle.AutoSize = true;
             this.lblTitle.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 20F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblTitle.Location = new System.Drawing.Point(3, 0);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(683, 48);
+            this.lblTitle.Size = new System.Drawing.Size(683, 60);
             this.lblTitle.TabIndex = 0;
             this.lblTitle.Text = "Message Title";
             this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -76,21 +76,21 @@ namespace Alarmy
             this.rtbContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbContent.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.rtbContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.rtbContent.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rtbContent.Location = new System.Drawing.Point(3, 50);
+            this.rtbContent.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.rtbContent.Location = new System.Drawing.Point(3, 62);
             this.rtbContent.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.rtbContent.Name = "rtbContent";
             this.rtbContent.ReadOnly = true;
-            this.rtbContent.Size = new System.Drawing.Size(683, 241);
+            this.rtbContent.Size = new System.Drawing.Size(683, 312);
             this.rtbContent.TabIndex = 1;
             this.rtbContent.Text = "";
             // 
             // btnValidateAuthenticity
             // 
             this.btnValidateAuthenticity.AutoSize = true;
-            this.btnValidateAuthenticity.Location = new System.Drawing.Point(3, 293);
+            this.btnValidateAuthenticity.Location = new System.Drawing.Point(3, 376);
             this.btnValidateAuthenticity.Name = "btnValidateAuthenticity";
-            this.btnValidateAuthenticity.Size = new System.Drawing.Size(218, 17);
+            this.btnValidateAuthenticity.Size = new System.Drawing.Size(235, 20);
             this.btnValidateAuthenticity.TabIndex = 2;
             this.btnValidateAuthenticity.TabStop = true;
             this.btnValidateAuthenticity.Text = "Validate Authenticity - view online";
@@ -109,10 +109,10 @@ namespace Alarmy
             // 
             // frmAlarm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(689, 318);
+            this.ClientSize = new System.Drawing.Size(689, 398);
             this.Controls.Add(this.tableLayoutPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

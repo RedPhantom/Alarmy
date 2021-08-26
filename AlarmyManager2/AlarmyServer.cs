@@ -36,7 +36,7 @@ namespace AlarmyManager
 
         internal static void OnApplicationExit(object sender, EventArgs e)
         {
-            Console.Write("\n\nStopping server... ");
+            Console.WriteLine("\n\nStopping server...");
             Stop();
             Console.WriteLine("Server stopped. Press any key to exit or close the console.");
             Console.ReadKey(intercept: true);
@@ -108,6 +108,7 @@ namespace AlarmyManager
             try
             {
                 ClientWriteString(client, pmw.Serialize() + Consts.EOFTag);
+                ClientWriteString(client, "");
             }
             catch (SocketException se)
             {

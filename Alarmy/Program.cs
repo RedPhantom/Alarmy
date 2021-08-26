@@ -24,8 +24,8 @@ namespace Alarmy
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
         private static Thread _serviceThread;
 
-        // Set this reference bool to `true` to cause the client thread to stop.
-        private static bool s_shouldStop = false;
+        // Trigger this event to cause the client thread to stop.
+        private static ManualResetEvent s_stopClient = new(false);
 
         internal static void Start()
         {
@@ -33,7 +33,10 @@ namespace Alarmy
             {
                 Instance instance = Instance.GetInstance();
                 _serviceThread = new Thread(new ThreadStart(() => {
-                    ServiceProvider.StartProvider(instance, ref s_shouldStop);
+                    AsynchronousClient.StartClient(Properties.Settings.Default.ServiceURL,
+                        Properties.Settings.Default.ServicePort,
+                        instance,
+                        s_stopClient);
                 }));
                 _serviceThread.Start();
             }
@@ -47,9 +50,9 @@ namespace Alarmy
         {
             try
             {
-                s_shouldStop = true;
+                s_stopClient.Set();
                 Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
-                    "Alarmy Service (Stopped)");
+                    AlarmyApplicationContext.StoppedTrayIconText);
             }
             catch (Exception e)
             {
@@ -60,8 +63,10 @@ namespace Alarmy
 
     internal class AlarmyApplicationContext : ApplicationContext
     {
-        public const string DefaultTrayIconText = "Alarmy Service";
-        
+        // TODO: Change to consts when .NET 5 supports const interpolated strings.
+        public static readonly string DefaultTrayIconText = "Alarmy Service";
+        public static readonly string StoppedTrayIconText = $"{DefaultTrayIconText} (stopped)";
+
         private readonly NotifyIcon _trayIcon;
 
         // We always start the service disconnected, i.e. false.
