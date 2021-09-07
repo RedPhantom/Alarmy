@@ -157,13 +157,47 @@ namespace AlarmyManager
         private void TriggerAlarmForClients(Alarm alarm)
         {
             clbUsers.Enabled = false;
-            foreach (Instance instance in clbUsers.CheckedItems)
+
+            List<Instance> InstancesToRemove = new();
+            CheckedListBox.CheckedItemCollection targetedInstances = clbUsers.CheckedItems;
+            
+            foreach (Instance instance in targetedInstances)
             {
                 ConnectionState client = InstanceToConnection[instance];
+
                 lblStatus.Text = $"Sending alarm to {instance}...";
-                AlarmyServer.TriggerAlarm(client, alarm);
+
+                try
+                {
+                    AlarmyServer.SendAlarmToClient(client, alarm);
+                }
+                catch (ObjectDisposedException)
+                {
+                    // This exception can occur if the client list has not been refreshed
+                    // since a client disconnected.
+                    InstancesToRemove.Add(instance);
+                }
             }
+
             lblStatus.Text = "Alarm deployment complete.";
+
+            // Remove all irrelevant, disconnected instances.
+            foreach (Instance instance in InstancesToRemove)
+            {
+                InstanceToConnection.Remove(instance);
+                clbUsers.Items.Remove(instance);
+
+                lock (ManagerState.s_activeInstances)
+                {
+                    ManagerState.s_activeInstances.Remove(instance);
+                }
+            }
+
+            if (InstancesToRemove.Count > 0)
+            {
+                lblStatus.Text += $" Dropped {InstancesToRemove.Count} inactive clients.";
+            }
+
             clbUsers.Enabled = true;
         }
 
@@ -231,7 +265,10 @@ namespace AlarmyManager
         {
             if (InstanceToConnection.ContainsKey(instance))
             {
-                if (InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint)
+                // TODO: The comparison InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint
+                // throws an object disposed exception.
+                if (InstanceToConnection[instance].Connected &&
+                    InstanceToConnection[instance].RemoteEndPoint != connection.RemoteEndPoint)
                 {
                     // Update the Instance's connection.
                     UpdateInstanceToConnection(instance, connection);
@@ -281,9 +318,9 @@ namespace AlarmyManager
             }
             else
             {
-                lblStatus.Text = "Stopping server...";
+                lblStatus.Text = "Starting server...";
                 StartServer();
-                lblStatus.Text = "Server stopped.";
+                // The server status and application status will change when the server starts up successfully.
             }
         }
 

@@ -9,7 +9,6 @@ namespace AlarmyManager
 {
     internal static class AlarmyServer
     {
-        internal static List<ConnectionState> s_clients = new List<ConnectionState>();
         internal static TcpServer s_internalServer;
         
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
@@ -98,25 +97,7 @@ namespace AlarmyManager
             return secureString;
         }
 
-        internal static void PingClient(ConnectionState client)
-        {
-            MessageWrapper<PingMessage> pmw = new MessageWrapper<PingMessage>
-            {
-                Message = new PingMessage()
-            };
-
-            try
-            {
-                ClientWriteString(client, pmw.Serialize() + Consts.EOFTag);
-                ClientWriteString(client, "");
-            }
-            catch (SocketException se)
-            {
-                s_logger.Error(se, "Failed to write to client.");
-            }
-        }
-
-        internal static void TriggerAlarm(ConnectionState client, Alarm alarm) 
+        internal static void SendAlarmToClient(ConnectionState client, Alarm alarm) 
         {
             MessageWrapper<ShowAlarmMessage> sam = new MessageWrapper<ShowAlarmMessage>
             {
@@ -128,10 +109,21 @@ namespace AlarmyManager
 
         internal static void PingClients()
         {
-            foreach (var client in s_clients)
+            foreach (var client in s_internalServer.CurrentConnections)
             {
-                PingClient(client);
+                PingClient((ConnectionState)client);
             }
+        }
+
+        internal static void PingClient(ConnectionState client)
+        {
+            MessageWrapper<PingMessage> pmw = new MessageWrapper<PingMessage>
+            {
+                Message = new PingMessage()
+            };
+
+            ClientWriteString(client, pmw.Serialize() + Consts.EOFTag);
+            ClientWriteString(client, "");
         }
 
         internal static void ClientWriteString(ConnectionState client, string s)

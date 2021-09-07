@@ -121,6 +121,7 @@ namespace Alarmy
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
+            this.linkLabel1.Enabled = false;
             this.linkLabel1.Location = new System.Drawing.Point(3, 536);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(86, 20);

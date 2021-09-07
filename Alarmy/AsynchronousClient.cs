@@ -98,10 +98,20 @@ namespace Alarmy
             }
             catch (Exception e)
             {
+                // TODO: Properly log the error.
                 Console.WriteLine(e.ToString());
             }
         }
 
+        /// <summary>
+        /// Wait for messages or a client request-to-stop signal.
+        /// </summary>
+        /// <param name="client">Client socket.</param>
+        /// <param name="stopClient">
+        /// Flag tracking whether a server-stop is requested. Set in case of an unrecoverable error
+        /// or a user's request.
+        /// </param>
+        /// <returns>Whether a request for server stop has been made.</returns>
         private static bool Communicate(Socket client, ManualResetEvent stopClient)
         {
             while (true)
@@ -121,6 +131,16 @@ namespace Alarmy
                 }
                 else
                 {
+                    // If the response is empty, it means that the remove host has dropped the connection.
+                    // In that case, we stop the client. The user will restart the service manually.
+                    // TODO: validate this theory.
+                    if (0 == s_response.Length)
+                    {
+                        Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
+                            "Server connection dropped. Restart service to try again.");
+                        return true;
+                    }
+
                     foreach (string message in s_response.Split(Consts.EOFTag, StringSplitOptions.RemoveEmptyEntries))
                     {
                         HandleMessage(client, message);
@@ -190,7 +210,6 @@ namespace Alarmy
             {
                 s_logger.Warn(ke, $"Received an unexpected message type: {content.Type}.");
             }
-
         }
 
         private static void ConnectCallback(IAsyncResult ar)
@@ -205,9 +224,6 @@ namespace Alarmy
                 // Complete the connection.
                 client.EndConnect(ar);
 
-                Console.WriteLine("Socket connected to {0}",
-                    client.RemoteEndPoint.ToString());
-
                 // Signal that the connection has been made.
                 s_connectDone.Set();
             }
@@ -218,7 +234,7 @@ namespace Alarmy
                     lock (Program.Context)
                     {
                         Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
-                        $"Failed to connect to the Alarmy Server. " +
+                         "Failed to connect to the Alarmy Server. " +
                         $"Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
                         
                         if (client is not null)
@@ -245,18 +261,17 @@ namespace Alarmy
                 state.workSocket = client;
 
                 // Begin receiving the data from the remote device.
-                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), state);
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 return true;
             }
-            catch (ObjectDisposedException ode)
+            catch (ObjectDisposedException)
             {
                 // This is a "valid" exception when closing the socket.
                 return false;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                s_logger.Error(e, "Unexpected error in client receive.");
                 return false;
             }
         }
@@ -270,10 +285,15 @@ namespace Alarmy
                 StateObject state = (StateObject)ar.AsyncState;
                 Socket client = state.workSocket;
 
+                // TODO: for some reason, when the stop the server, client.Conncted is still true.
                 // Check if the callback was triggered by closing the socket.
                 if (!client.Connected)
                 {
-                    s_receiveDone.Set();
+                    // TODO: Put the client in an "attempting to reconnect..." mode.
+                    // This can be done by stopping and re-starting the client, leaving
+                    // it in the Connecting method.
+                    // Stop the client since the server crashed.
+                    s_stopClient.Set();
                     return;
                 }
 
@@ -311,12 +331,14 @@ namespace Alarmy
                     {
                         s_response = state.sb.ToString();
                     }
+
                     // Signal that all bytes have been received.
                     s_receiveDone.Set();
                 }
             }
             catch (Exception e)
             {
+                // TODO: handle possible exception: connection forced close by the remote host.
                 Console.WriteLine(e.ToString());
             }
         }
@@ -327,8 +349,7 @@ namespace Alarmy
             byte[] byteData = Encoding.UTF8.GetBytes(data + Consts.EOFTag);
 
             // Begin sending the data to the remote device.
-            client.BeginSend(byteData, 0, byteData.Length, 0,
-                new AsyncCallback(SendCallback), client);
+            client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);
         }
 
         private static void SendCallback(IAsyncResult ar)

@@ -107,7 +107,7 @@ namespace AlarmyManager
                 }
                 else
                 {
-                    s_logger.Error(ex, "Error starting server.");
+                    s_logger.Error(ex, $"Error starting server: {ex.Message}");
                 }
 
                 IsRunning = false;
@@ -189,7 +189,6 @@ namespace AlarmyManager
             {
                 s_logger.Error(ioe, "Failed to authenticate client via SSL.");
             }
-            
 
             if (st._conn.Connected)
             {
@@ -207,9 +206,13 @@ namespace AlarmyManager
             {
                 st._conn.EndReceive(ar);
             }
+            catch (SocketException)
+            {
+                // This was added instead of just return;
+                DropConnection(st);
+            }
             catch (Exception)
             {
-                //Server.Write($"Connection with a client was terminated.", "tcp", messageTypes.INFO);
                 return;
             }
             
@@ -279,13 +282,27 @@ namespace AlarmyManager
         internal void DropConnection(ConnectionState st)
         {
             s_logger.Trace($"Dropping a connection from {st.RemoteEndPoint}.");
-            lock (this)
+            try
             {
-                st._conn.Shutdown(SocketShutdown.Both);
-                st._conn.Close();
-                if (CurrentConnections.Contains(st))
+                lock (this)
                 {
-                    CurrentConnections.Remove(st);
+                    st._conn.Shutdown(SocketShutdown.Both);
+                    st._conn.Close();
+                }
+            }
+            catch (SocketException se)
+            {
+                s_logger.Error(se, $"Error occurred dropping the connection: {se.Message}.");
+            }
+            finally
+            {
+                // Even if an error occurred, we want to make sure we remove this connection.
+                lock (this)
+                {
+                    if (CurrentConnections.Contains(st))
+                    {
+                        CurrentConnections.Remove(st);
+                    }
                 }
             }
         }

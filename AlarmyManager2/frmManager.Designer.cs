@@ -397,6 +397,7 @@ namespace AlarmyManager
             this.btnToggleServer.TabIndex = 11;
             this.btnToggleServer.Text = "Stop Server";
             this.btnToggleServer.UseVisualStyleBackColor = true;
+            this.btnToggleServer.Click += new System.EventHandler(this.btnToggleServer_Click);
             // 
             // frmManager
             // 

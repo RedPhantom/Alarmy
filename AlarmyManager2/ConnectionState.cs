@@ -68,17 +68,9 @@ namespace AlarmyManager
         /// <returns>
         /// <c>true</c> upon successful data sending.
         /// </returns>
-        public bool Write(byte[] buffer, int offset, int count)
+        public void Write(byte[] buffer, int offset, int count)
         {
-            try
-            {
-                _conn.Send(buffer, offset, count, SocketFlags.None);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            _conn.Send(buffer, offset, count, SocketFlags.None);
         }
 
         /// <summary>

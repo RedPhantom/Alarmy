@@ -35,7 +35,6 @@ namespace AlarmyManager
         {
             // Add the connection to the pool.
             s_logger.Trace($"Accepted a connection from {state.RemoteEndPoint}.");
-            AlarmyServer.s_clients.Add(state);
  
             // Send a ping request to the new client.
             AlarmyServer.PingClient(state);
@@ -83,7 +82,7 @@ namespace AlarmyManager
             }
             catch (Exception ex)
             {
-                s_logger.Warn(ex, $"Failed to parse the following message" +
+                s_logger.Warn(ex, $"An error while processing the received message." +
                     $"\nOrigin: \n{state.RemoteEndPoint}\nRaw Content: \n{_receivedStr}");
             }
 
@@ -177,7 +176,6 @@ namespace AlarmyManager
         /// <param name="state">The <see cref="ConnectionState"/> being dropped from the connection pool.</param>
         public override void OnDropConnection(ConnectionState state)
         {
-            AlarmyServer.s_clients.Remove(state);
             s_logger.Info($"Dropped the connection with {state.RemoteEndPoint}.");
         }
     }
