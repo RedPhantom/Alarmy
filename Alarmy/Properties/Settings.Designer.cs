@@ -46,5 +46,29 @@ namespace Alarmy.Properties {
                 this["ServicePort"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string Groups {
+            get {
+                return ((string)(this["Groups"]));
+            }
+            set {
+                this["Groups"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AlarmsInterruptive {
+            get {
+                return ((bool)(this["AlarmsInterruptive"]));
+            }
+            set {
+                this["AlarmsInterruptive"] = value;
+            }
+        }
     }
 }

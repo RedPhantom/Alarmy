@@ -8,14 +8,23 @@ namespace Alarmy
     internal static class Program
     {
         internal static AlarmyApplicationContext Context;
+        static Mutex mutex = new Mutex(true, "{55469597-1821-4E49-B03E-02A34E86D86C}");
 
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Context = new AlarmyApplicationContext();
-            Application.Run(Context);
+            if (mutex.WaitOne(TimeSpan.Zero, true))
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Context = new AlarmyApplicationContext();
+                Application.Run(Context);
+                mutex.ReleaseMutex();
+            }
+            else
+            {
+                MessageBox.Show("An Alarmy instance is already running.");
+            }
         }
     }
 

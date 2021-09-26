@@ -8,7 +8,7 @@ namespace AlarmyLib
     public class Alarm
     {
         /// <summary>
-        /// Unique identifier of the message.
+        /// Unique identifier of the alarm.
         /// </summary>
         public string ID { get; set; }
 
@@ -28,12 +28,17 @@ namespace AlarmyLib
         public string Content { get; set; }
 
         /// <summary>
+        /// ID of the Group this message was sent to.
+        /// </summary>
+        public Guid GroupID { get; set; }
+
+        /// <summary>
         /// Create a new Alarm.
         /// </summary>
         /// <param name="isRtl">Whether the alarm content should be displayed as right to left.</param>
         /// <param name="title">Title of the alarm. It will appear at the top of the window.</param>
         /// <param name="content">Content of the alarm. Rich text format.</param>
-        public Alarm(string id, bool isRtl, string title, string content)
+        public Alarm(string id, bool isRtl, string title, string content, Guid groupId = new Guid())
         {
             IsRtl = isRtl;
 
@@ -54,6 +59,11 @@ namespace AlarmyLib
                 throw new ArgumentException("Content must have a value.");
             }
             Content = content;
+
+            if (null == groupId)
+            {
+                GroupID = Group.GlobalGroup.ID;
+            }
         }
 
         public static string GenerateID()

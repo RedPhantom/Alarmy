@@ -138,7 +138,7 @@ namespace Alarmy
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "frmPastAlarms";
-            this.Text = "Past Alarms";
+            this.Text = "Alarm History";
             this.Load += new System.EventHandler(this.frmPastAlarms_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);

@@ -175,7 +175,11 @@ namespace Alarmy
                     // We start the alarm on a new thread so after Show() is called and we return to wait
                     // on Socket.Receive(), the UI can be responsive.
                     Thread t = new Thread(new ThreadStart(() => {
-                        frmAlarm frmAlarm = new frmAlarm();
+                        frmAlarm frmAlarm = new() 
+                        {
+                            TopMost = Properties.Settings.Default.AlarmsInterruptive
+                        };
+
                         frmAlarm.LoadAlarm(sam.Alarm);
                         Application.Run(frmAlarm);
                     }));

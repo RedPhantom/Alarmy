@@ -108,9 +108,9 @@ namespace AlarmyManager
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(3, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(44, 20);
+            this.label1.Size = new System.Drawing.Size(89, 20);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Users";
+            this.label1.Text = "Target Users";
             // 
             // label2
             // 
@@ -221,9 +221,9 @@ namespace AlarmyManager
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(3, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(71, 20);
+            this.label4.Size = new System.Drawing.Size(44, 20);
             this.label4.TabIndex = 11;
-            this.label4.Text = "Last Seen";
+            this.label4.Text = "Users";
             // 
             // tmrLastSeen
             // 
@@ -255,7 +255,7 @@ namespace AlarmyManager
             this.btnTransferSelection.Name = "btnTransferSelection";
             this.btnTransferSelection.Size = new System.Drawing.Size(144, 40);
             this.btnTransferSelection.TabIndex = 13;
-            this.btnTransferSelection.Text = "Apply Selection";
+            this.btnTransferSelection.Text = "Target Selected";
             this.btnTransferSelection.UseVisualStyleBackColor = true;
             this.btnTransferSelection.Click += new System.EventHandler(this.btnTransferSelection_Click);
             this.btnTransferSelection.MouseHover += new System.EventHandler(this.btnTransferSelection_MouseHover);

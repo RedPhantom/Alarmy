@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AlarmyLib
@@ -38,7 +39,8 @@ namespace AlarmyLib
 
             t = Type.GetType(wrapper.MessageType);
 
-            return new MessageWrapperContent(JsonConvert.DeserializeObject(Convert.ToString(wrapper.Message), t), t);
+            return new MessageWrapperContent(JsonConvert.DeserializeObject(
+                Convert.ToString(wrapper.Message), t), t);
         }
     }
 
@@ -110,9 +112,24 @@ namespace AlarmyLib
 
     public class ServiceStartedResponse : BaseResponse
     {
-        public ServiceStartedResponse(Instance instance) : base(instance)
+        /// <summary>
+        /// IDs of the groups the user requests to register to.
+        /// </summary>
+        public List<Guid> GroupIDs { get; set; } = new List<Guid>();
+
+        public ServiceStartedResponse(Instance instance,
+            List<Guid> groupIDs = null) : base(instance)
         {
             Instance = Instance;
+
+            if (groupIDs is null)
+            {
+                GroupIDs = new List<Guid> { Group.GlobalGroup.ID };
+            }
+            else
+            {
+                GroupIDs = groupIDs;
+            }
         }
     }
 
