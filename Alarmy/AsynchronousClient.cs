@@ -104,8 +104,11 @@ namespace Alarmy
             }
             catch (Exception e)
             {
-                // TODO: Properly log the error.
-                Console.WriteLine(e.ToString());
+                s_logger.Error(e, "Unexpected error in client connect. States: \n" +
+                    $"s_connectDone = {s_connectDone.WaitOne(0)}\n" +
+                    $"s_sendDone = {s_sendDone.WaitOne(0)}\n" +
+                    $"s_recevieDone = {s_receiveDone.WaitOne(0)}\n" +
+                    $"s_stopClient = {s_stopClient.WaitOne(0)}\n");
             }
         }
 
@@ -139,11 +142,14 @@ namespace Alarmy
                 {
                     // If the response is empty, it means that the remove host has dropped the connection.
                     // In that case, we stop the client. The user will restart the service manually.
-                    // TODO: validate this theory.
                     if (0 == s_response.Length)
                     {
+                        string gracefulServerStopMsg = "Server gracefully closed. Manually restart the service to try again.";
+                        
                         Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
-                            "Server connection dropped. Restart service to try again.");
+                            gracefulServerStopMsg);
+                        MessageBox.Show(gracefulServerStopMsg, "Alarmy");
+                        
                         return true;
                     }
 
@@ -355,8 +361,7 @@ namespace Alarmy
             }
             catch (Exception e)
             {
-                // TODO: handle possible exception: connection forced close by the remote host.
-                Console.WriteLine(e.ToString());
+                s_logger.Error(e, "Unexpected error in receive callback.");
             }
         }
 

@@ -133,7 +133,7 @@ namespace AlarmyManager
                 if (CurrentConnections.Count >= _maxConnections)
                 {
                     // Max number of connections reached. Terminate the connection with the client.
-                    // TODO: send error message
+                    // TODO: validate error message is handled properly by the client.
                     ErrorMessage ce = new ErrorMessage(ErrorMessage.ErrorCode.MaxConnectionsExceeded);
                     MessageWrapper<ErrorMessage> messageWrapper = new MessageWrapper<ErrorMessage>();
 

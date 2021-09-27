@@ -5,8 +5,8 @@ namespace Alarmy
 {
     internal class AlarmyApplicationContext : ApplicationContext
     {
-        // TODO: Change to consts when .NET 5 supports const interpolated strings.
-        public static readonly string DefaultTrayIconText = "Alarmy Service";
+        public const string DefaultTrayIconText = "Alarmy Service";
+        // TODO: Change to const when .NET 5 supports const interpolated strings.
         public static readonly string StoppedTrayIconText = $"{DefaultTrayIconText} (stopped)";
 
         private readonly NotifyIcon _trayIcon;
@@ -78,6 +78,10 @@ namespace Alarmy
             {
                 Start();
             }
+            else
+            {
+                MessageBox.Show("Service already running.", "Alarmy");
+            }
         }
 
         public void OnStop(object sender, EventArgs e)
@@ -89,7 +93,8 @@ namespace Alarmy
         public void OnExit(object sender, EventArgs e)
         {
             // Stop the service.
-            // We don't check if the client is running to stop the attempting-connection logic.
+            // Notice wee don't check if the client is running
+            // to stop even during attempting-to-connect logic.
             AlarmyService.Stop();
 
             // Hide the tray icon and stop the application.
