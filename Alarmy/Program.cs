@@ -23,7 +23,9 @@ namespace Alarmy
             }
             else
             {
-                MessageBox.Show("An Alarmy instance is already running.");
+                MessageBox.Show("An Alarmy instance is already running.\n" +
+                    "Please allow ~15 seconds for a previous instance to gracefully close.\n" +
+                    "Alternatively, terminate the process via TaskManager.");
             }
         }
     }

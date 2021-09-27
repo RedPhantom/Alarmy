@@ -72,13 +72,6 @@ namespace Alarmy
             }
         }
 
-        private void OnRecentAlarms(object sender, EventArgs e)
-        {
-            frmPastAlarms frmPastAlarms = new frmPastAlarms();
-            frmPastAlarms.Show();
-        }
-
-
         public void OnStart(object sender, EventArgs e)
         {
             if (!_isRunning)
@@ -96,11 +89,18 @@ namespace Alarmy
         public void OnExit(object sender, EventArgs e)
         {
             // Stop the service.
+            // We don't check if the client is running to stop the attempting-connection logic.
             AlarmyService.Stop();
 
             // Hide the tray icon and stop the application.
             _trayIcon.Visible = false;
             Application.Exit();
+        }
+
+        private void OnRecentAlarms(object sender, EventArgs e)
+        {
+            frmPastAlarms frmPastAlarms = new frmPastAlarms();
+            frmPastAlarms.Show();
         }
     }
 }

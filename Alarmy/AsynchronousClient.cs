@@ -70,6 +70,12 @@ namespace Alarmy
                     client.BeginConnect(s_remoteEP, new AsyncCallback(ConnectCallback), client);
                     s_connectDone.WaitOne();
 
+                    // Check the connection result - successful or not.
+                    if ((!client.Connected) && s_stopClient.WaitOne(0))
+                    {
+                        return;
+                    }
+
                     lock (Program.Context)
                     {
                         Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.Regular);
@@ -237,14 +243,21 @@ namespace Alarmy
                 {
                     lock (Program.Context)
                     {
-                        Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
-                         "Failed to connect to the Alarmy Server. " +
-                        $"Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
+                        Program.Context.SetTrayIconStatus(
+                            AlarmyApplicationContext.TrayIconStatus.NotRunning,
+                            "Failed to connect to the Alarmy Server. " +
+                            $"Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
                         
-                        if (client is not null)
+                        // Only attempt reconnection if the client is valid and
+                        // the s_stopClient flag is not set.
+                        if ((client is not null) && !s_stopClient.WaitOne(0))
                         {
                             Thread.Sleep(s_reconnectAttemptWait);
                             client.BeginConnect(s_remoteEP, ConnectCallback, client);
+                        }
+                        else if (s_stopClient.WaitOne(0))
+                        {
+                            s_connectDone.Set();
                         }
                     }
                 }
