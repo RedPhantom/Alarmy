@@ -13,21 +13,37 @@ namespace Alarmy
 
         private void frmPastAlarms_Load(object sender, EventArgs e)
         {
-            foreach (Alarm alarm in AlarmyState.s_pastAlarms)
+            foreach (HistoricAlarm historicAlarm in AlarmyState.PastAlarms)
             {
-                lbPastAlarms.Items.Add(alarm);
+                lbPastAlarms.Items.Add(historicAlarm);
             }
         }
 
         private void lbPastAlarms_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Alarm selectedAlarm = (Alarm)lbPastAlarms.SelectedItem;
-            
-            lblTitle.Text = selectedAlarm.Title;
-            lblTitle.RightToLeft = selectedAlarm.IsRtl ? RightToLeft.Yes : RightToLeft.Inherit;
+            HistoricAlarm selectedAlarm = (HistoricAlarm)lbPastAlarms.SelectedItem;
 
-            rtbContent.Rtf = selectedAlarm.Content;
-            rtbContent.RightToLeft = selectedAlarm.IsRtl ? RightToLeft.Yes : RightToLeft.Inherit;
+            string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now -
+                   selectedAlarm.DateTime);
+
+            lblTitle.Text = selectedAlarm.Alarm.Title;
+            lblTitle.RightToLeft = selectedAlarm.Alarm.IsRtl ? RightToLeft.Yes : RightToLeft.Inherit;
+
+            switch (selectedAlarm.Type)
+            {
+                case AlarmType.RTF:
+                    rtbContent.Rtf = selectedAlarm.Alarm.Content;
+                    rtbContent.Enabled = false;
+                    break;
+                
+                case AlarmType.TextOnly:
+                    rtbContent.Text = selectedAlarm.Alarm.Content;
+                    rtbContent.Enabled = true;
+                    break;
+            }
+
+            rtbContent.RightToLeft = selectedAlarm.Alarm.IsRtl ? RightToLeft.Yes : RightToLeft.Inherit;
+            lbAlarmReceivedTime.Text = $"Received: {selectedAlarm.DateTime} ({humanizedLastSeen} ago)";
         }
     }
 }

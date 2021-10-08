@@ -21,7 +21,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
-  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationIcon>Alarmy.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <None Update="nlog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -51,6 +53,7 @@
     <Content Include="Resources\Alarmy.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Humanizer" Version="2.11.10" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="NLog" Version="4.7.10" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />

@@ -85,5 +85,10 @@ namespace AlarmyManager
             }
             _server.DropConnection(this);
         }
+
+        public string Repr()
+        {
+            return $"<Client Socket={_conn.LocalEndPoint} <-> {_conn.RemoteEndPoint}>";
+        }
     }
 }

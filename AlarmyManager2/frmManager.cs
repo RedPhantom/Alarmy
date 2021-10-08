@@ -14,9 +14,11 @@ namespace AlarmyManager
         private readonly Dictionary<Instance, ConnectionState> InstanceToConnection = 
             new Dictionary<Instance, ConnectionState>();
 
+        // Instance
         private const string ColumnNameInstance = "colInstance";
         private const string ColumnHeaderInstance = "Instance";
 
+        // Last Seen
         private const string ColumnNameLastSeen = "colLastSeen";
         private const string ColumnHeaderLastSeen = "Last Seen";
 
@@ -43,6 +45,11 @@ namespace AlarmyManager
             // Add columns to the data grid view.
             dgvLastSeen.Columns.Add(ColumnNameInstance, ColumnHeaderInstance);
             dgvLastSeen.Columns.Add(ColumnNameLastSeen, ColumnHeaderLastSeen);
+
+            // Set the alarm types.
+            cbAlarmType.DataSource = Enum.GetValues<AlarmType>();
+            cbAlarmType.SelectedItem = (AlarmType)Properties.Settings.Default.AlarmType;
+            cbAlarmType.SelectedIndexChanged += cbAlarmType_SelectedIndexChanged;
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -58,7 +65,7 @@ namespace AlarmyManager
 
             try
             {
-                btnToggleServer.Enabled = false;
+                tsmiToggleServer.Enabled = false;
                 ServerLauncher ServerLauncher = new ServerLauncher(Properties.Settings.Default.ServicePort);
                 ServerThread = new Thread(() => ServerLauncher.Start(new ServerStartParameters(OnInstancesUpdate, OnServerStart)));
                 ServerThread.Start();
@@ -73,15 +80,15 @@ namespace AlarmyManager
         {
             try
             {
-                btnToggleServer.Enabled = false;
+                tsmiToggleServer.Enabled = false;
                 AlarmyServer.Stop();
 
                 // TODO: make sure stopping and starting the server over and over
                 // again doesn't create zombie threads. It shouldn't, since
                 // we're re-setting the ServerThread variable each time.
                 //ServerThread.Abort();
-                btnToggleServer.Text = "Start Server";
-                btnToggleServer.Enabled = true;
+                tsmiToggleServer.Text = "Start Server";
+                tsmiToggleServer.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -169,7 +176,7 @@ namespace AlarmyManager
 
                 try
                 {
-                    AlarmyServer.SendAlarmToClient(client, alarm);
+                    AlarmyServer.SendAlarmToClient(client, alarm, (AlarmType)cbAlarmType.SelectedItem);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -187,9 +194,9 @@ namespace AlarmyManager
                 InstanceToConnection.Remove(instance);
                 clbUsers.Items.Remove(instance);
 
-                lock (ManagerState.s_activeInstances)
+                lock (ManagerState.ActiveInstances)
                 {
-                    ManagerState.s_activeInstances.Remove(instance);
+                    ManagerState.ActiveInstances.Remove(instance);
                 }
             }
 
@@ -203,7 +210,12 @@ namespace AlarmyManager
 
         private Alarm GetAlarmFromForm()
         {
-            return new Alarm(tbUid.Text, cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf);
+            return (AlarmType)cbAlarmType.SelectedItem switch
+            {
+                AlarmType.RTF => new Alarm(tbUid.Text, cbRightToLeft.Checked, tbTitle.Text, rtbContent.Rtf),
+                AlarmType.TextOnly => new Alarm(tbUid.Text, cbRightToLeft.Checked, tbTitle.Text, rtbContent.Text),
+                _ => throw new Exception($"Invalid alarm type {cbAlarmType.SelectedItem}"),
+            };
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -211,9 +223,9 @@ namespace AlarmyManager
             clbUsers.Items.Clear();
             dgvLastSeen.Rows.Clear();
 
-            lock (ManagerState.s_activeInstances)
+            lock (ManagerState.ActiveInstances)
             {
-                ManagerState.s_activeInstances.Clear();
+                ManagerState.ActiveInstances.Clear();
             }
 
             AlarmyServer.PingClients();
@@ -249,8 +261,8 @@ namespace AlarmyManager
             {
                 lblStatus.Text = "Ready.";
 
-                btnToggleServer.Text = "Stop Server";
-                btnToggleServer.Enabled = true;
+                tsmiToggleServer.Text = "Stop Server";
+                tsmiToggleServer.Enabled = true;
 
                 UpdateServerStatus();
             });
@@ -308,22 +320,6 @@ namespace AlarmyManager
             tbTitle.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
         }
 
-        private void btnToggleServer_Click(object sender, EventArgs e)
-        {
-            if (AlarmyServer.s_internalServer.IsRunning)
-            {
-                lblStatus.Text = "Stopping server...";
-                StopServer();
-                lblStatus.Text = "Server stopped.";
-            }
-            else
-            {
-                lblStatus.Text = "Starting server...";
-                StartServer();
-                // The server status and application status will change when the server starts up successfully.
-            }
-        }
-
         private void tmrLastSeen_Tick(object sender, EventArgs e)
         {
             UpdateLastSeen();
@@ -331,10 +327,10 @@ namespace AlarmyManager
 
         private void UpdateLastSeen()
         {
-            foreach (Instance instance in ManagerState.s_activeInstances.Keys)
+            foreach (Instance instance in ManagerState.ActiveInstances.Keys)
             {
                 // Update the cell that holds the Last Seen time, or add the entire row if needed.
-                DateTime lastSeen = ManagerState.s_activeInstances[instance];
+                DateTime lastSeen = ManagerState.ActiveInstances[instance];
                 string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - 
                     lastSeen , precision: 2);
                 bool foundCell = false;
@@ -426,7 +422,7 @@ namespace AlarmyManager
 
         private void UpdateServerStatus()
         {
-            if (AlarmyServer.s_internalServer.IsRunning)
+            if (AlarmyServer.IsRunning)
             {
                 lblServerStatus.Text = "Running";
                 lblServerStatus.BackColor = System.Drawing.Color.FromArgb(192, 255, 192);
@@ -436,6 +432,61 @@ namespace AlarmyManager
                 lblServerStatus.Text = "Stopped";
                 lblServerStatus.BackColor = System.Drawing.Color.FromArgb(255, 192, 192);
             }
+        }
+
+        private void btnGroupManager_Click(object sender, EventArgs e)
+        {
+            new frmGroups().ShowDialog();
+        }
+
+        private void cbAlarmType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbAlarmType.SelectedItem is not null)
+            {
+                Properties.Settings.Default.AlarmType = (int)cbAlarmType.SelectedItem;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+        private void tsmiGroupManager_Click(object sender, EventArgs e)
+        {
+            new frmGroups().ShowDialog();
+        }
+
+        private void tsmiToggleServer_Click(object sender, EventArgs e)
+        {
+            if (AlarmyServer.IsRunning)
+            {
+                lblStatus.Text = "Stopping server...";
+                StopServer();
+                lblStatus.Text = "Server stopped.";
+            }
+            else
+            {
+                lblStatus.Text = "Starting server...";
+                StartServer();
+                // The server status and application status will change when the server starts up successfully.
+            }
+        }
+
+        private void tsmiRightToLeft_Click(object sender, EventArgs e)
+        {
+            cbRightToLeft.Checked = true;
+        }
+
+        private void tsmiLeftToRight_Click(object sender, EventArgs e)
+        {
+            cbRightToLeft.Checked = false;
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (AlarmyServer.IsRunning)
+            {
+                StopServer();
+            }
+
+            Application.Exit();
         }
     }
 }

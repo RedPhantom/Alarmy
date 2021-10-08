@@ -86,5 +86,41 @@ namespace AlarmyManager.Properties {
                 this["ExportDirectory"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Groups {
+            get {
+                return ((string)(this["Groups"]));
+            }
+            set {
+                this["Groups"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NeedsUpgrading {
+            get {
+                return ((bool)(this["NeedsUpgrading"]));
+            }
+            set {
+                this["NeedsUpgrading"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int AlarmType {
+            get {
+                return ((int)(this["AlarmType"]));
+            }
+            set {
+                this["AlarmType"] = value;
+            }
+        }
     }
 }

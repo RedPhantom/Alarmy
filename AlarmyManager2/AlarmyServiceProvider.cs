@@ -1,7 +1,6 @@
 ﻿using AlarmyLib;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AlarmyManager
 {
@@ -56,7 +55,7 @@ namespace AlarmyManager
                 int readBytes = state.Read(buffer, 0, Consts.BufferSize);
                 if (readBytes > 0)
                 {
-                    _receivedStr += Encoding.UTF8.GetString(buffer, 0, readBytes);
+                    _receivedStr += MessageUtils.Encoding.GetString(buffer, 0, readBytes);
                 }
                 else
                 {
@@ -76,30 +75,23 @@ namespace AlarmyManager
                 // If multiple messages accumulated, parse each.
                 foreach (string message in _receivedStr.Split(new string[] { Consts.EOFTag }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    MessageWrapperContent mrc = ParseMessage(message);
-                    HandleMessage(mrc, state);
+                    string trimmedMessage = message.TrimEnd('\0');
+
+                    if (!string.IsNullOrWhiteSpace(trimmedMessage))
+                    {
+                        // We don't trim the EOF tag since it's been already removed in the Split().
+                        MessageWrapperContent mrc = MessageUtils.ParseMessageString(trimmedMessage, removeEofTag: false);
+                        HandleMessage(mrc, state);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                s_logger.Warn(ex, $"An error while processing the received message." +
+                s_logger.Warn(ex, $"An error occurred while processing the received message." +
                     $"\nOrigin: \n{state.RemoteEndPoint}\nRaw Content: \n{_receivedStr}");
             }
 
             _receivedStr = string.Empty;
-        }
-
-        /// <summary>
-        /// Parse the data received from the client.
-        /// </summary>
-        /// <param name="msg">Message received from the client.</param>
-        /// 
-        private MessageWrapperContent ParseMessage(string msg)
-        {
-            MessageWrapperContent wrapper;
-            wrapper = MessageWrapper.Deserialize(msg);
-
-            return wrapper;
         }
 
         /// <summary>
@@ -109,6 +101,8 @@ namespace AlarmyManager
         /// <param name="client">The client from which the message was received.</param>
         private void HandleMessage(MessageWrapperContent mrc, ConnectionState client) 
         {
+            s_logger.Debug($"Handling message {mrc.Repr()} from {client.Repr()}.");
+
             // Handle the message ("response" - a message from a client) based on its type.
             var @switch = new Dictionary<Type, Action> {
                 { typeof(PingResponse), () => {
@@ -128,6 +122,19 @@ namespace AlarmyManager
                     UpdateActiveInstances(ssr.Instance);
                     _serverParameters.OnInstancesChange(this, new InstancesChangeEventArgs(ssr.Instance, client));
                 } },
+                { typeof(GroupQueryMessage), () =>
+                {
+                    MessageWrapper<GroupQueryResponse> gqrWrapper = new();
+                    GroupQueryMessage gcm = (GroupQueryMessage)mrc.Message;
+                    GroupQueryResponse gqr;
+
+                    gqr = new GroupQueryResponse(null, ManagerState.Groups.Find(x => x.ID == gcm.GroupID));
+                    gqrWrapper.Message = gqr;
+
+                    // Send the response to the client - Group if found, null if not.
+                    AlarmyServer.ClientWriteString(client, 
+                        MessageUtils.BuildMessageString(gqrWrapper.Serialize()));
+                } }
             };
             
             try
@@ -151,20 +158,20 @@ namespace AlarmyManager
                 s_logger.Error("UpdateActiveInstances Received a null instance.");
             }
 
-            if (!ManagerState.s_activeInstances.ContainsKey(instance))
+            if (ManagerState.ActiveInstances.ContainsKey(instance))
             {
-                lock (ManagerState.s_activeInstances)
+                lock (ManagerState.ActiveInstances)
                 {
-                    ManagerState.s_activeInstances.Add(instance, DateTime.Now);
-                    s_logger.Trace("Added a new instance to the ActiveInstances pool.");
+                    ManagerState.ActiveInstances[instance] = DateTime.Now;
+                    s_logger.Trace("Updated an existing instance in the ActiveInstances pool.");
                 }
             }
             else
             {
-                lock (ManagerState.s_activeInstances)
+                lock (ManagerState.ActiveInstances)
                 {
-                    ManagerState.s_activeInstances[instance] = DateTime.Now;
-                    s_logger.Trace("Updated an existing instance in the ActiveInstances pool.");
+                    ManagerState.ActiveInstances.Add(instance, DateTime.Now);
+                    s_logger.Trace("Added a new instance to the ActiveInstances pool.");
                 }
             }
         }

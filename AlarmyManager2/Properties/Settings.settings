@@ -14,5 +14,14 @@
     <Setting Name="ExportDirectory" Description="The directory to which alarms will be exported." Type="System.String" Scope="User">
       <Value Profile="(Default)">.\Alarms\</Value>
     </Setting>
+    <Setting Name="Groups" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="NeedsUpgrading" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AlarmType" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

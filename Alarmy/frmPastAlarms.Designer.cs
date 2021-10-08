@@ -36,6 +36,7 @@ namespace Alarmy
             this.lblTitle = new System.Windows.Forms.Label();
             this.rtbContent = new System.Windows.Forms.RichTextBox();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.lbAlarmReceivedTime = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -80,14 +81,16 @@ namespace Alarmy
             this.tableLayoutPanel1.Controls.Add(this.lblTitle, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.rtbContent, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.linkLabel1, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.lbAlarmReceivedTime, 0, 3);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowCount = 4;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 60F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(545, 562);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
@@ -109,12 +112,13 @@ namespace Alarmy
             this.rtbContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbContent.Cursor = System.Windows.Forms.Cursors.Default;
             this.rtbContent.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbContent.Enabled = false;
             this.rtbContent.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.rtbContent.Location = new System.Drawing.Point(3, 62);
             this.rtbContent.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.rtbContent.Name = "rtbContent";
             this.rtbContent.ReadOnly = true;
-            this.rtbContent.Size = new System.Drawing.Size(539, 472);
+            this.rtbContent.Size = new System.Drawing.Size(539, 452);
             this.rtbContent.TabIndex = 1;
             this.rtbContent.Text = "";
             // 
@@ -122,12 +126,20 @@ namespace Alarmy
             // 
             this.linkLabel1.AutoSize = true;
             this.linkLabel1.Enabled = false;
-            this.linkLabel1.Location = new System.Drawing.Point(3, 536);
+            this.linkLabel1.Location = new System.Drawing.Point(3, 516);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(86, 20);
             this.linkLabel1.TabIndex = 2;
             this.linkLabel1.TabStop = true;
             this.linkLabel1.Text = "View online";
+            // 
+            // lbAlarmReceivedTime
+            // 
+            this.lbAlarmReceivedTime.AutoSize = true;
+            this.lbAlarmReceivedTime.Location = new System.Drawing.Point(3, 542);
+            this.lbAlarmReceivedTime.Name = "lbAlarmReceivedTime";
+            this.lbAlarmReceivedTime.Size = new System.Drawing.Size(0, 20);
+            this.lbAlarmReceivedTime.TabIndex = 3;
             // 
             // frmPastAlarms
             // 
@@ -158,5 +170,6 @@ namespace Alarmy
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.RichTextBox rtbContent;
         private System.Windows.Forms.LinkLabel linkLabel1;
+        private System.Windows.Forms.Label lbAlarmReceivedTime;
     }
 }

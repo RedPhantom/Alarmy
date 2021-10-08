@@ -6,6 +6,7 @@ namespace AlarmyLib
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
+        public bool Enabled { get; set; }
 
         /// <summary>
         /// A special group which all Alarmy members are part of.
@@ -13,10 +14,11 @@ namespace AlarmyLib
         /// </summary>
         public static readonly Group GlobalGroup = new Group();
 
-        public Group(Guid guid = new Guid(), string name = "")
+        public Group(Guid guid = new Guid(), string name = "", bool enabled = true)
         {
             ID = guid;
             Name = name;
+            Enabled = enabled;
         }
 
         /// <summary>
@@ -31,6 +33,11 @@ namespace AlarmyLib
         public override string ToString()
         {
             return $"{Name} ({ID})";
+        }
+
+        public string Repr()
+        {
+            return $"<Group Name={Name}, ID={ID}, Enabled={Enabled}>";
         }
     }
 }

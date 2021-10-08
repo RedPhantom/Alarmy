@@ -1,4 +1,6 @@
-﻿namespace AlarmyManager.Properties {
+﻿using AlarmyLib;
+
+namespace Alarmy.Properties {
     
     
     // This class allows you to handle specific events on the settings class:
@@ -7,7 +9,6 @@
     //  The SettingsLoaded event is raised after the setting values are loaded.
     //  The SettingsSaving event is raised before the setting values are saved.
     internal sealed partial class Settings {
-        
         public Settings() {
             // // To add event handlers for saving and changing settings, uncomment the lines below:
             //

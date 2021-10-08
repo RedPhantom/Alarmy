@@ -49,7 +49,7 @@ namespace Alarmy.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string Groups {
             get {
                 return ((string)(this["Groups"]));
@@ -61,13 +61,25 @@ namespace Alarmy.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool AlarmsInterruptive {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int AlarmStyle {
             get {
-                return ((bool)(this["AlarmsInterruptive"]));
+                return ((int)(this["AlarmStyle"]));
             }
             set {
-                this["AlarmsInterruptive"] = value;
+                this["AlarmStyle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NeedsUpgrading {
+            get {
+                return ((bool)(this["NeedsUpgrading"]));
+            }
+            set {
+                this["NeedsUpgrading"] = value;
             }
         }
     }

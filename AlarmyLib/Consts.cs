@@ -12,4 +12,23 @@
         /// </summary>
         public const int BufferSize = 1024;
     }
+
+    public enum AlarmType
+    {
+        RTF,
+        TextOnly
+    }
+    
+    public enum AlarmStyle
+    {
+        /// <summary>
+        /// Alarms pop in the background.
+        /// </summary>
+        Background,
+
+        /// <summary>
+        /// Alarms pop in the foreground and must be closed.
+        /// </summary>
+        Interruptive
+    }
 }

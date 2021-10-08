@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace AlarmyLib
@@ -9,21 +10,34 @@ namespace AlarmyLib
     // Reference for serialization and deserialization in this class are taken from here:
     // https://stackoverflow.com/questions/38679972/determine-type-during-json-deserialize.
 
+    public class Transmission { }
+
     /// <summary>
     /// Describes information sent from the server to the client.
     /// </summary>
-    public class BaseMessage { }
+    public class BaseMessage : Transmission 
+    {
+        public string Repr()
+        {
+            return $"<BaseMessage>";
+        }
+    }
 
     /// <summary>
     /// Describes information sent from the client to the server.
     /// </summary>
-    public class BaseResponse
+    public class BaseResponse : Transmission
     {
         public Instance Instance { get; set; }
 
         public BaseResponse(Instance instance)
         {
             Instance = instance;
+        }
+
+        public string Repr()
+        {
+            return $"<BaseResponse Instance={Instance}>";
         }
     }
 
@@ -57,6 +71,11 @@ namespace AlarmyLib
             Message = message;
             Type = type;
         }
+
+        public string Repr()
+        {
+            return $"<MessageWrapperContent Type={Type}, Message={Message}>";
+        }
     }
 
     /// <summary>
@@ -72,6 +91,11 @@ namespace AlarmyLib
         {
             return JsonConvert.SerializeObject(this);
         }
+
+        public string Repr()
+        {
+            return $"<MessageWrapper<T> MessageType={MessageType}, Message={Message}>";
+        }
     }
 
     // Message Models
@@ -79,16 +103,32 @@ namespace AlarmyLib
     public class ShowAlarmMessage : BaseMessage
     {
         public Alarm Alarm { get; set; }
+        public AlarmType Type { get; set; }
 
-        public ShowAlarmMessage(Alarm alarm) : base()
+        public ShowAlarmMessage(Alarm alarm, AlarmType type) : base()
         {
             Alarm = alarm;
+            Type = type;
+        }
+
+        public override string ToString()
+        {
+            return $"{Alarm} ({Type})";
+        }
+
+        public new string Repr()
+        {
+            return $"<ShowAlarmMessage Type={Type}, Alarm={Alarm}>";
         }
     }
 
     public class PingMessage : BaseMessage
     {
         // No data is included.
+        public new string Repr()
+        {
+            return "<PingMessage>";
+        }
     }
 
     public class ErrorMessage : BaseMessage
@@ -105,6 +145,36 @@ namespace AlarmyLib
         {
             Code = code;
             Text = text;
+        }
+
+        public override string ToString()
+        {
+            return $"{Code}: {Text}";
+        }
+
+        public new string Repr()
+        {
+            return $"<ErrorMessage Code={Code}, Text={Text}>";
+        }
+    }
+
+    public class GroupQueryMessage : BaseMessage
+    {
+        public Guid GroupID { get; set; }
+
+        public GroupQueryMessage(Guid groupId)
+        {
+            GroupID = groupId;
+        }
+
+        public override string ToString()
+        {
+            return $"GroupID={GroupID}";
+        }
+
+        public new string Repr()
+        {
+            return $"<GroupQueryMessage GroupID={GroupID}>";
         }
     }
 
@@ -131,6 +201,16 @@ namespace AlarmyLib
                 GroupIDs = groupIDs;
             }
         }
+
+        public override string ToString()
+        {
+            return $"Instance={Instance}, GroupIDs={string.Join(", ", GroupIDs)}";
+        }
+
+        public new string Repr()
+        {
+            return $"<ServiceStartedResponse Instance={Instance}, GroupIDs={string.Join(", ", GroupIDs)}>";
+        }
     }
 
     public class PingResponse : BaseResponse
@@ -138,6 +218,36 @@ namespace AlarmyLib
         public PingResponse(Instance instance) : base(instance)
         {
             // No additional data is included.
+        }
+
+        public override string ToString()
+        {
+            return $"Instance={Instance}";
+        }
+
+        public new string Repr()
+        {
+            return $"<PingResponse Instance={Instance}>";
+        }
+    }
+
+    public class GroupQueryResponse : BaseResponse
+    {
+        public Group Group { get; set; }
+
+        public GroupQueryResponse(Instance instance, Group group) : base(instance)
+        {
+            Group = group;
+        }
+
+        public override string ToString()
+        {
+            return $"Instance={Instance}, Group={Group}";
+        }
+
+        public new string Repr()
+        {
+            return $"<GroupQueryResponse Instance={Instance}, Group={Group}>";
         }
     }
 }

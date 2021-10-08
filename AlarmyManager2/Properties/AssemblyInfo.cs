@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("AlarmyManager")]
-[assembly: AssemblyDescription("Management of Alarmy clients")]
+[assembly: AssemblyDescription("AlarmyManager - server-manager for the server-based alarm service Alarmy")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rando")]
 [assembly: AssemblyProduct("AlarmyManager")]

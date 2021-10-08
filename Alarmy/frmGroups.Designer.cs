@@ -29,15 +29,20 @@ namespace Alarmy
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGroups));
             this.label1 = new System.Windows.Forms.Label();
             this.mtbGroupUID = new System.Windows.Forms.MaskedTextBox();
             this.clbGroups = new System.Windows.Forms.CheckedListBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnAdd = new System.Windows.Forms.Button();
+            this.btnRemove = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnApply = new System.Windows.Forms.Button();
+            this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
+            this.lblVerifying = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -45,9 +50,9 @@ namespace Alarmy
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 12);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(79, 20);
+            this.label1.Size = new System.Drawing.Size(69, 20);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Group UID";
+            this.label1.Text = "Group ID";
             // 
             // mtbGroupUID
             // 
@@ -55,7 +60,6 @@ namespace Alarmy
             this.mtbGroupUID.Location = new System.Drawing.Point(106, 9);
             this.mtbGroupUID.Mask = "&&&&&&&&-&&&&-&&&&-&&&&-&&&&&&&&&&&&";
             this.mtbGroupUID.Name = "mtbGroupUID";
-            this.mtbGroupUID.PromptChar = ' ';
             this.mtbGroupUID.Size = new System.Drawing.Size(422, 27);
             this.mtbGroupUID.TabIndex = 1;
             // 
@@ -85,23 +89,25 @@ namespace Alarmy
             this.label3.TabIndex = 4;
             this.label3.Text = "Your Groups";
             // 
-            // button1
+            // btnAdd
             // 
-            this.button1.Location = new System.Drawing.Point(534, 8);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(94, 29);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Add";
-            this.button1.UseVisualStyleBackColor = true;
+            this.btnAdd.Location = new System.Drawing.Point(534, 8);
+            this.btnAdd.Name = "btnAdd";
+            this.btnAdd.Size = new System.Drawing.Size(94, 29);
+            this.btnAdd.TabIndex = 5;
+            this.btnAdd.Text = "Add";
+            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
-            // button2
+            // btnRemove
             // 
-            this.button2.Location = new System.Drawing.Point(534, 40);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(94, 29);
-            this.button2.TabIndex = 6;
-            this.button2.Text = "Remove";
-            this.button2.UseVisualStyleBackColor = true;
+            this.btnRemove.Location = new System.Drawing.Point(534, 40);
+            this.btnRemove.Name = "btnRemove";
+            this.btnRemove.Size = new System.Drawing.Size(94, 29);
+            this.btnRemove.TabIndex = 6;
+            this.btnRemove.Text = "Remove";
+            this.btnRemove.UseVisualStyleBackColor = true;
+            this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
             // 
             // btnCancel
             // 
@@ -111,6 +117,7 @@ namespace Alarmy
             this.btnCancel.TabIndex = 7;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // btnApply
             // 
@@ -120,25 +127,46 @@ namespace Alarmy
             this.btnApply.TabIndex = 8;
             this.btnApply.Text = "Apply";
             this.btnApply.UseVisualStyleBackColor = true;
+            this.btnApply.Click += new System.EventHandler(this.btnApply_Click);
+            // 
+            // errorProvider
+            // 
+            this.errorProvider.ContainerControl = this;
+            // 
+            // lblVerifying
+            // 
+            this.lblVerifying.AutoSize = true;
+            this.lblVerifying.Location = new System.Drawing.Point(634, 12);
+            this.lblVerifying.Name = "lblVerifying";
+            this.lblVerifying.Size = new System.Drawing.Size(76, 20);
+            this.lblVerifying.TabIndex = 9;
+            this.lblVerifying.Text = "Verifying...";
+            this.lblVerifying.Visible = false;
             // 
             // frmGroups
             // 
+            this.AcceptButton = this.btnApply;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(740, 337);
+            this.Controls.Add(this.lblVerifying);
             this.Controls.Add(this.btnApply);
             this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnRemove);
+            this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.clbGroups);
             this.Controls.Add(this.mtbGroupUID);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "frmGroups";
             this.Text = "Group Manager";
+            this.Load += new System.EventHandler(this.frmGroups_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -151,9 +179,11 @@ namespace Alarmy
         private System.Windows.Forms.CheckedListBox clbGroups;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnAdd;
+        private System.Windows.Forms.Button btnRemove;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnApply;
+        private System.Windows.Forms.ErrorProvider errorProvider;
+        private System.Windows.Forms.Label lblVerifying;
     }
 }

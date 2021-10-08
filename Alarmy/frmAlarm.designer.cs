@@ -76,6 +76,7 @@ namespace Alarmy
             this.rtbContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbContent.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.rtbContent.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.rtbContent.Enabled = false;
             this.rtbContent.Font = new System.Drawing.Font("Segoe UI", 10.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.rtbContent.Location = new System.Drawing.Point(3, 62);
             this.rtbContent.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);

@@ -60,14 +60,12 @@ namespace AlarmyLib
 
         public override string ToString()
         {
-            if (Username.Contains(ComputerName))
-            {
-                return Username;
-            }
-            else
-            {
-                return $@"{Username}\{ComputerName}";
-            }
+            return $"{Username}@{ComputerName}";
+        }
+
+        public string Repr()
+        {
+            return $"<Instance Username={Username}, ComputerName={ComputerName}>";
         }
     }
 }

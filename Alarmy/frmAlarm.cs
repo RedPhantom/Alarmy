@@ -21,7 +21,7 @@ namespace Alarmy
             Text = $"Alarmy v{Assembly.GetExecutingAssembly().GetName().Version}";
         }
 
-        internal void LoadAlarm(Alarm alarm)
+        internal void LoadAlarm(Alarm alarm, AlarmType type)
         {
             if (alarm.IsRtl)
             {
@@ -29,7 +29,23 @@ namespace Alarmy
             }
 
             lblTitle.Text = alarm.Title;
-            rtbContent.Rtf = alarm.Content;
+
+            switch (type)
+            {
+                case AlarmType.RTF:
+                    rtbContent.Rtf = alarm.Content;
+
+                    // Prevent interaction with possible binary objects in the RTF data.
+                    rtbContent.Enabled = false;
+                    break;
+
+                case AlarmType.TextOnly:
+                    rtbContent.Text = alarm.Content;
+                    rtbContent.Enabled = true;
+                    break;
+                default:
+                    break;
+            }
 
             _alarm = alarm;
         }

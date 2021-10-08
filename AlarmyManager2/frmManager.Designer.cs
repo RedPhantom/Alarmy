@@ -57,7 +57,19 @@ namespace AlarmyManager
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.clbUsers = new System.Windows.Forms.CheckedListBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.btnToggleServer = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.cbAlarmType = new System.Windows.Forms.ComboBox();
+            this.msMain = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiToggleServer = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiSettings = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deploymentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.alarmDirectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiRightToLeft = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiLeftToRight = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiGroupManager = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
@@ -65,12 +77,13 @@ namespace AlarmyManager
             this.tableLayoutPanel3.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
+            this.msMain.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnAllUsers
             // 
             this.btnAllUsers.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnAllUsers.Location = new System.Drawing.Point(3, 646);
+            this.btnAllUsers.Location = new System.Drawing.Point(3, 618);
             this.btnAllUsers.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnAllUsers.Name = "btnAllUsers";
             this.btnAllUsers.Size = new System.Drawing.Size(94, 39);
@@ -83,7 +96,7 @@ namespace AlarmyManager
             // btnNoUsers
             // 
             this.btnNoUsers.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnNoUsers.Location = new System.Drawing.Point(103, 646);
+            this.btnNoUsers.Location = new System.Drawing.Point(103, 618);
             this.btnNoUsers.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnNoUsers.Name = "btnNoUsers";
             this.btnNoUsers.Size = new System.Drawing.Size(95, 39);
@@ -117,9 +130,9 @@ namespace AlarmyManager
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(3, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(34, 20);
+            this.label2.Size = new System.Drawing.Size(68, 20);
             this.label2.TabIndex = 4;
-            this.label2.Text = "UID";
+            this.label2.Text = "Alarm ID";
             // 
             // label3
             // 
@@ -137,13 +150,13 @@ namespace AlarmyManager
             this.rtbContent.Location = new System.Drawing.Point(83, 81);
             this.rtbContent.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.rtbContent.Name = "rtbContent";
-            this.rtbContent.Size = new System.Drawing.Size(465, 557);
+            this.rtbContent.Size = new System.Drawing.Size(465, 529);
             this.rtbContent.TabIndex = 5;
             this.rtbContent.Text = "";
             // 
             // btnSend
             // 
-            this.btnSend.Location = new System.Drawing.Point(83, 642);
+            this.btnSend.Location = new System.Drawing.Point(83, 614);
             this.btnSend.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(115, 40);
@@ -156,7 +169,7 @@ namespace AlarmyManager
             // btnRefresh
             // 
             this.btnRefresh.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnRefresh.Location = new System.Drawing.Point(204, 646);
+            this.btnRefresh.Location = new System.Drawing.Point(204, 618);
             this.btnRefresh.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(96, 39);
@@ -168,12 +181,15 @@ namespace AlarmyManager
             // 
             // cbRightToLeft
             // 
-            this.cbRightToLeft.Location = new System.Drawing.Point(124, 2);
+            this.cbRightToLeft.Enabled = false;
+            this.cbRightToLeft.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.cbRightToLeft.Location = new System.Drawing.Point(3, 2);
             this.cbRightToLeft.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.cbRightToLeft.Name = "cbRightToLeft";
-            this.cbRightToLeft.Size = new System.Drawing.Size(176, 40);
+            this.cbRightToLeft.Size = new System.Drawing.Size(158, 40);
             this.cbRightToLeft.TabIndex = 8;
             this.cbRightToLeft.Text = "Right to Left mode";
+            this.cbRightToLeft.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.cbRightToLeft.UseVisualStyleBackColor = true;
             this.cbRightToLeft.CheckedChanged += new System.EventHandler(this.cbRightToLeft_CheckedChanged);
             this.cbRightToLeft.MouseHover += new System.EventHandler(this.cbRightToLeft_MouseHover);
@@ -245,12 +261,12 @@ namespace AlarmyManager
             this.dgvLastSeen.ReadOnly = true;
             this.dgvLastSeen.RowHeadersWidth = 51;
             this.dgvLastSeen.RowTemplate.Height = 24;
-            this.dgvLastSeen.Size = new System.Drawing.Size(361, 609);
+            this.dgvLastSeen.Size = new System.Drawing.Size(361, 581);
             this.dgvLastSeen.TabIndex = 12;
             // 
             // btnTransferSelection
             // 
-            this.btnTransferSelection.Location = new System.Drawing.Point(3, 644);
+            this.btnTransferSelection.Location = new System.Drawing.Point(3, 616);
             this.btnTransferSelection.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnTransferSelection.Name = "btnTransferSelection";
             this.btnTransferSelection.Size = new System.Drawing.Size(144, 40);
@@ -291,13 +307,13 @@ namespace AlarmyManager
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel4, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.flowLayoutPanel1, 0, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 28);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1239, 746);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1239, 718);
             this.tableLayoutPanel1.TabIndex = 16;
             // 
             // tableLayoutPanel2
@@ -315,7 +331,7 @@ namespace AlarmyManager
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(367, 688);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(367, 660);
             this.tableLayoutPanel2.TabIndex = 0;
             // 
             // tableLayoutPanel3
@@ -339,7 +355,7 @@ namespace AlarmyManager
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 45F));
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 48F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(551, 688);
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(551, 660);
             this.tableLayoutPanel3.TabIndex = 1;
             // 
             // tableLayoutPanel4
@@ -362,7 +378,7 @@ namespace AlarmyManager
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 44F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
-            this.tableLayoutPanel4.Size = new System.Drawing.Size(303, 688);
+            this.tableLayoutPanel4.Size = new System.Drawing.Size(303, 660);
             this.tableLayoutPanel4.TabIndex = 2;
             // 
             // clbUsers
@@ -373,31 +389,133 @@ namespace AlarmyManager
             this.clbUsers.Location = new System.Drawing.Point(3, 27);
             this.clbUsers.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.clbUsers.Name = "clbUsers";
-            this.clbUsers.Size = new System.Drawing.Size(297, 615);
+            this.clbUsers.Size = new System.Drawing.Size(297, 587);
             this.clbUsers.TabIndex = 8;
             // 
             // flowLayoutPanel1
             // 
             this.tableLayoutPanel1.SetColumnSpan(this.flowLayoutPanel1, 3);
-            this.flowLayoutPanel1.Controls.Add(this.btnToggleServer);
             this.flowLayoutPanel1.Controls.Add(this.cbRightToLeft);
+            this.flowLayoutPanel1.Controls.Add(this.label6);
+            this.flowLayoutPanel1.Controls.Add(this.cbAlarmType);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 700);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 672);
             this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Size = new System.Drawing.Size(1233, 42);
             this.flowLayoutPanel1.TabIndex = 3;
             // 
-            // btnToggleServer
+            // label6
             // 
-            this.btnToggleServer.Location = new System.Drawing.Point(3, 2);
-            this.btnToggleServer.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.btnToggleServer.Name = "btnToggleServer";
-            this.btnToggleServer.Size = new System.Drawing.Size(115, 40);
-            this.btnToggleServer.TabIndex = 11;
-            this.btnToggleServer.Text = "Stop Server";
-            this.btnToggleServer.UseVisualStyleBackColor = true;
-            this.btnToggleServer.Click += new System.EventHandler(this.btnToggleServer_Click);
+            this.label6.Location = new System.Drawing.Point(167, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(89, 40);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "Alarm Type";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // cbAlarmType
+            // 
+            this.cbAlarmType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbAlarmType.FormattingEnabled = true;
+            this.cbAlarmType.Location = new System.Drawing.Point(262, 3);
+            this.cbAlarmType.Name = "cbAlarmType";
+            this.cbAlarmType.Size = new System.Drawing.Size(151, 28);
+            this.cbAlarmType.TabIndex = 12;
+            this.cbAlarmType.SelectedIndexChanged += new System.EventHandler(this.cbAlarmType_SelectedIndexChanged);
+            // 
+            // msMain
+            // 
+            this.msMain.ImageScalingSize = new System.Drawing.Size(20, 20);
+            this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.deploymentToolStripMenuItem});
+            this.msMain.Location = new System.Drawing.Point(0, 0);
+            this.msMain.Name = "msMain";
+            this.msMain.Size = new System.Drawing.Size(1239, 28);
+            this.msMain.TabIndex = 17;
+            this.msMain.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiToggleServer,
+            this.tsmiSettings,
+            this.toolStripSeparator1,
+            this.exitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Text = "&File";
+            // 
+            // tsmiToggleServer
+            // 
+            this.tsmiToggleServer.Name = "tsmiToggleServer";
+            this.tsmiToggleServer.Size = new System.Drawing.Size(224, 26);
+            this.tsmiToggleServer.Text = "Server starting...";
+            this.tsmiToggleServer.ToolTipText = "Toggle the server status - running or stopped";
+            this.tsmiToggleServer.Click += new System.EventHandler(this.tsmiToggleServer_Click);
+            // 
+            // tsmiSettings
+            // 
+            this.tsmiSettings.Name = "tsmiSettings";
+            this.tsmiSettings.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
+            this.tsmiSettings.Size = new System.Drawing.Size(224, 26);
+            this.tsmiSettings.Text = "&Settings...";
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.exitToolStripMenuItem.Text = "&Exit";
+            this.exitToolStripMenuItem.ToolTipText = "Stop the server and quit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // deploymentToolStripMenuItem
+            // 
+            this.deploymentToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.alarmDirectionToolStripMenuItem,
+            this.tsmiGroupManager});
+            this.deploymentToolStripMenuItem.Name = "deploymentToolStripMenuItem";
+            this.deploymentToolStripMenuItem.Size = new System.Drawing.Size(105, 24);
+            this.deploymentToolStripMenuItem.Text = "&Deployment";
+            // 
+            // alarmDirectionToolStripMenuItem
+            // 
+            this.alarmDirectionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiRightToLeft,
+            this.tsmiLeftToRight});
+            this.alarmDirectionToolStripMenuItem.Name = "alarmDirectionToolStripMenuItem";
+            this.alarmDirectionToolStripMenuItem.Size = new System.Drawing.Size(257, 26);
+            this.alarmDirectionToolStripMenuItem.Text = "&Alarm Direction";
+            this.alarmDirectionToolStripMenuItem.ToolTipText = "Define the alarm text direction";
+            // 
+            // tsmiRightToLeft
+            // 
+            this.tsmiRightToLeft.Name = "tsmiRightToLeft";
+            this.tsmiRightToLeft.Size = new System.Drawing.Size(224, 26);
+            this.tsmiRightToLeft.Text = "Right to Left";
+            this.tsmiRightToLeft.Click += new System.EventHandler(this.tsmiRightToLeft_Click);
+            // 
+            // tsmiLeftToRight
+            // 
+            this.tsmiLeftToRight.Name = "tsmiLeftToRight";
+            this.tsmiLeftToRight.Size = new System.Drawing.Size(224, 26);
+            this.tsmiLeftToRight.Text = "Left to Right";
+            this.tsmiLeftToRight.Click += new System.EventHandler(this.tsmiLeftToRight_Click);
+            // 
+            // tsmiGroupManager
+            // 
+            this.tsmiGroupManager.Name = "tsmiGroupManager";
+            this.tsmiGroupManager.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G)));
+            this.tsmiGroupManager.Size = new System.Drawing.Size(257, 26);
+            this.tsmiGroupManager.Text = "&Group Manager...";
+            this.tsmiGroupManager.ToolTipText = "Create and manage groups";
+            this.tsmiGroupManager.Click += new System.EventHandler(this.tsmiGroupManager_Click);
             // 
             // frmManager
             // 
@@ -406,9 +524,12 @@ namespace AlarmyManager
             this.ClientSize = new System.Drawing.Size(1239, 772);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.statusStrip);
+            this.Controls.Add(this.msMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MainMenuStrip = this.msMain;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "frmManager";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Alarmy Manager";
             this.Load += new System.EventHandler(this.frmManager_Load);
             this.statusStrip.ResumeLayout(false);
@@ -422,6 +543,8 @@ namespace AlarmyManager
             this.tableLayoutPanel4.ResumeLayout(false);
             this.tableLayoutPanel4.PerformLayout();
             this.flowLayoutPanel1.ResumeLayout(false);
+            this.msMain.ResumeLayout(false);
+            this.msMain.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -453,8 +576,20 @@ namespace AlarmyManager
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.Button btnToggleServer;
         private System.Windows.Forms.CheckedListBox clbUsers;
+        private System.Windows.Forms.ComboBox cbAlarmType;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.MenuStrip msMain;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tsmiToggleServer;
+        private System.Windows.Forms.ToolStripMenuItem tsmiSettings;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem deploymentToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem alarmDirectionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tsmiRightToLeft;
+        private System.Windows.Forms.ToolStripMenuItem tsmiLeftToRight;
+        private System.Windows.Forms.ToolStripMenuItem tsmiGroupManager;
     }
 }
 

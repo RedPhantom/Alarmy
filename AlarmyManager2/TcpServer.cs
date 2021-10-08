@@ -103,11 +103,11 @@ namespace AlarmyManager
             {
                 if (ex.Message.Contains("password"))
                 {
-                    s_logger.Error(ex, "Certificate activation error.");
+                    s_logger.Error(ex, "Certificate activation error: incorrect password.");
                 }
                 else
                 {
-                    s_logger.Error(ex, $"Error starting server: {ex.Message}");
+                    s_logger.Error(ex, $"Error starting server: {ex.Message}.");
                 }
 
                 IsRunning = false;

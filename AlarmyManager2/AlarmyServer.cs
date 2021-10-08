@@ -1,7 +1,5 @@
 ﻿using AlarmyLib;
 using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Security;
 using System.Text;
 
@@ -9,7 +7,13 @@ namespace AlarmyManager
 {
     internal static class AlarmyServer
     {
-        internal static TcpServer s_internalServer;
+        internal static bool IsRunning { 
+            get 
+            {
+                return s_internalServer.IsRunning;
+            }}
+
+        private static TcpServer s_internalServer;
         
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -92,26 +96,27 @@ namespace AlarmyManager
                         break;
                     }
                 }
-            } while (true);
+            }
+            while (true);
 
             return secureString;
         }
 
-        internal static void SendAlarmToClient(ConnectionState client, Alarm alarm) 
+        internal static void SendAlarmToClient(ConnectionState client, Alarm alarm, AlarmType type) 
         {
             MessageWrapper<ShowAlarmMessage> sam = new MessageWrapper<ShowAlarmMessage>
             {
-                Message = new ShowAlarmMessage(alarm)
+                Message = new ShowAlarmMessage(alarm, type)
             };
 
-            ClientWriteString(client, sam.Serialize() + Consts.EOFTag);
+            ClientWriteString(client, MessageUtils.BuildMessageString(sam.Serialize()));
         }
 
         internal static void PingClients()
         {
-            foreach (var client in s_internalServer.CurrentConnections)
+            foreach (ConnectionState client in s_internalServer.CurrentConnections)
             {
-                PingClient((ConnectionState)client);
+                PingClient(client);
             }
         }
 
@@ -122,12 +127,12 @@ namespace AlarmyManager
                 Message = new PingMessage()
             };
 
-            ClientWriteString(client, pmw.Serialize() + Consts.EOFTag);
-            ClientWriteString(client, "");
+            ClientWriteString(client, MessageUtils.BuildMessageString(pmw.Serialize()));
         }
 
         internal static void ClientWriteString(ConnectionState client, string s)
         {
+            s_logger.Debug($"Writing {s} to {client.Repr()}.");
             byte[] bytes = Encoding.UTF8.GetBytes(s);
             client.Write(bytes, 0, bytes.Length);
         }
