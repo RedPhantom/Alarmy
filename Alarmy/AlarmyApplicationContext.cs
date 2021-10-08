@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
@@ -58,7 +57,7 @@ namespace Alarmy
                     _trayIcon.Text = StoppedTrayIconText;
                 }
                 else
-                { 
+                {
                     _trayIcon.Text = statusText;
                 }
             }
@@ -83,6 +82,9 @@ namespace Alarmy
             if (_isRunning)
             {
                 AlarmyService.Stop();
+
+                // TODO: validate the service is really not running.
+                _isRunning = false;
             }
         }
 
@@ -91,6 +93,9 @@ namespace Alarmy
             if (!_isRunning)
             {
                 Start();
+
+                // TODO: validate the service is really running.
+                _isRunning = true;
             }
             else
             {

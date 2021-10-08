@@ -67,7 +67,8 @@ namespace Alarmy
             try
             {
                 Instance instance = Instance.GetInstance();
-                _serviceThread = new Thread(new ThreadStart(() => {
+                _serviceThread = new Thread(new ThreadStart(() =>
+                {
                     AsynchronousClient.StartClient(
                         Properties.Settings.Default.ServiceURL,
                         Properties.Settings.Default.ServicePort,

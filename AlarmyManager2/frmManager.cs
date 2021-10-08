@@ -11,7 +11,7 @@ namespace AlarmyManager
     public partial class frmManager : Form
     {
         private Thread ServerThread;
-        private readonly Dictionary<Instance, ConnectionState> InstanceToConnection = 
+        private readonly Dictionary<Instance, ConnectionState> InstanceToConnection =
             new Dictionary<Instance, ConnectionState>();
 
         // Instance
@@ -38,7 +38,7 @@ namespace AlarmyManager
 
             // Set the windoe title.
             Text = $"Alarmy Manager v{Assembly.GetExecutingAssembly().GetName().Version}";
-            
+
             // Start the server.
             StartServer();
 
@@ -75,7 +75,7 @@ namespace AlarmyManager
                 MessageBox.Show($"Failed to start the server: {ex}.");
             }
         }
-        
+
         private void StopServer()
         {
             try
@@ -151,7 +151,7 @@ namespace AlarmyManager
 
             // Construct the message for the alarm and send it.
             TriggerAlarmForClients(alarm);
-            
+
             // Save the alarm so it's accessible for authenticity validation.
             CreateAlarmFile(alarm);
         }
@@ -167,7 +167,7 @@ namespace AlarmyManager
 
             List<Instance> InstancesToRemove = new();
             CheckedListBox.CheckedItemCollection targetedInstances = clbUsers.CheckedItems;
-            
+
             foreach (Instance instance in targetedInstances)
             {
                 ConnectionState client = InstanceToConnection[instance];
@@ -231,7 +231,7 @@ namespace AlarmyManager
             AlarmyServer.PingClients();
             UpdateLastSeen();
         }
-        
+
         /// <summary>
         /// Event handler for the service provider's instances update.
         /// </summary>
@@ -257,7 +257,7 @@ namespace AlarmyManager
         /// <remarks>Called from the server thread.</remarks>
         private void OnServerStart(object sender, EventArgs e)
         {
-            lblStatus.Owner.Invoke((MethodInvoker)delegate 
+            lblStatus.Owner.Invoke((MethodInvoker)delegate
             {
                 lblStatus.Text = "Ready.";
 
@@ -331,8 +331,8 @@ namespace AlarmyManager
             {
                 // Update the cell that holds the Last Seen time, or add the entire row if needed.
                 DateTime lastSeen = ManagerState.ActiveInstances[instance];
-                string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now - 
-                    lastSeen , precision: 2);
+                string humanizedLastSeen = Humanizer.TimeSpanHumanizeExtensions.Humanize(DateTime.Now -
+                    lastSeen, precision: 2);
                 bool foundCell = false;
 
                 foreach (DataGridViewRow row in dgvLastSeen.Rows)
@@ -340,7 +340,7 @@ namespace AlarmyManager
                     if (row.Cells[ColumnNameInstance].Value == instance)
                     {
                         row.Cells[ColumnNameLastSeen].Value = humanizedLastSeen;
-                        
+
                         // Update the background of the cell if last seen time is a long time ago.
                         if ((DateTime.Now - lastSeen) > LastSeenLongAgo)
                         {
@@ -354,14 +354,14 @@ namespace AlarmyManager
                 if (!foundCell)
                 {
                     dgvLastSeen.Rows.Add(instance, humanizedLastSeen);
-                }  
+                }
             }
         }
 
         private void btnTransferSelection_Click(object sender, EventArgs e)
         {
             List<DataGridViewRow> SelectedRows = new List<DataGridViewRow>();
-            
+
             foreach (DataGridViewCell cell in dgvLastSeen.SelectedCells)
             {
                 if (!SelectedRows.Contains(cell.OwningRow))

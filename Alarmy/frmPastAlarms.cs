@@ -35,7 +35,7 @@ namespace Alarmy
                     rtbContent.Rtf = selectedAlarm.Alarm.Content;
                     rtbContent.Enabled = false;
                     break;
-                
+
                 case AlarmType.TextOnly:
                     rtbContent.Text = selectedAlarm.Alarm.Content;
                     rtbContent.Enabled = true;

@@ -1,12 +1,8 @@
 ﻿using AlarmyLib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -33,10 +29,10 @@ namespace Alarmy
     public class AsynchronousClient
     {
         // ManualResetEvent instances signal completion.
-        private static ManualResetEvent s_connectDone = new(false);
-        private static ManualResetEvent s_sendDone    = new(false);
-        private static ManualResetEvent s_receiveDone = new(false);
-        private static ManualResetEvent s_stopClient  = new(false);
+        private static readonly ManualResetEvent s_connectDone = new(false);
+        private static readonly ManualResetEvent s_sendDone = new(false);
+        private static readonly ManualResetEvent s_receiveDone = new(false);
+        private static ManualResetEvent s_stopClient = new(false);
 
         // The response from the remote device.
         private static String s_response = String.Empty;
@@ -103,7 +99,7 @@ namespace Alarmy
                     // Sent initialization message.
                     Send(client, "              " + GetInitializationMessage(s_instance));
                     s_sendDone.WaitOne();
-                    
+
                     // Communication loop.
                     shouldTerminateThread = Communicate(client, s_stopClient);
 
@@ -177,11 +173,11 @@ namespace Alarmy
                     if (s_response.Length == 0)
                     {
                         string gracefulServerStopMsg = "Server gracefully closed. Manually restart the Alarmy client.";
-                        
+
                         Program.Context.SetTrayIconStatus(AlarmyApplicationContext.TrayIconStatus.NotRunning,
                             gracefulServerStopMsg);
                         MessageBox.Show(gracefulServerStopMsg, "Alarmy");
-                        
+
                         return true;
                     }
 
@@ -237,7 +233,7 @@ namespace Alarmy
                     // We start the alarm on a new thread so after Show() is called and we return to wait
                     // on Socket.Receive(), the UI can be responsive.
                     Thread t = new Thread(new ThreadStart(() => {
-                        frmAlarm frmAlarm = new() 
+                        frmAlarm frmAlarm = new()
                         {
                             TopMost = AlarmStyle.Interruptive == (AlarmStyle)Properties.Settings.Default.AlarmStyle
                         };
@@ -263,7 +259,7 @@ namespace Alarmy
                 { typeof(ErrorMessage), () =>
                 {
                     ErrorMessage em = (ErrorMessage)content.Message;
-                    MessageBox.Show($"Received a code {em.Code} error message from the server: \n{em.Text ?? "<no additional data>"}", 
+                    MessageBox.Show($"Received a code {em.Code} error message from the server: \n{em.Text ?? "<no additional data>"}",
                         "Alarmy: Got error from server");
                 } },
 
@@ -315,7 +311,7 @@ namespace Alarmy
                             AlarmyApplicationContext.TrayIconStatus.NotRunning,
                             "Failed to connect to the Alarmy Server. " +
                             $"Retyring in {s_reconnectAttemptWait.TotalSeconds} seconds.");
-                        
+
                         // Only attempt reconnection if the client is valid and
                         // the s_stopClient flag is not set.
                         if ((client is not null) && !s_stopClient.WaitOne(0))

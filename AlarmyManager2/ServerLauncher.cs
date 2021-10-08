@@ -1,5 +1,5 @@
-﻿using System;
-using AlarmyLib;
+﻿using AlarmyLib;
+using System;
 
 namespace AlarmyManager
 {

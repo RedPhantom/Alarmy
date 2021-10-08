@@ -14,7 +14,7 @@ namespace Alarmy
 
         private static bool s_changesMade = false;
         private static InternalProxy s_proxy;
-        
+
         public frmGroups(InternalProxy proxy)
         {
             InitializeComponent();
@@ -40,7 +40,7 @@ namespace Alarmy
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
-            } 
+            }
 
             if (!s_changesMade)
             {

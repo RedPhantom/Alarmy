@@ -25,7 +25,7 @@ namespace AlarmyManager
         {
             return new AlarmyServiceProvider(_serverParameters);
         }
-        
+
         /// <summary>
         /// A connection has been esablished with a client.
         /// </summary>
@@ -34,7 +34,7 @@ namespace AlarmyManager
         {
             // Add the connection to the pool.
             s_logger.Trace($"Accepted a connection from {state.RemoteEndPoint}.");
- 
+
             // Send a ping request to the new client.
             AlarmyServer.PingClient(state);
         }
@@ -99,7 +99,7 @@ namespace AlarmyManager
         /// </summary>
         /// <param name="mrc">Received message contents.</param>
         /// <param name="client">The client from which the message was received.</param>
-        private void HandleMessage(MessageWrapperContent mrc, ConnectionState client) 
+        private void HandleMessage(MessageWrapperContent mrc, ConnectionState client)
         {
             s_logger.Debug($"Handling message {mrc.Repr()} from {client.Repr()}.");
 
@@ -132,11 +132,11 @@ namespace AlarmyManager
                     gqrWrapper.Message = gqr;
 
                     // Send the response to the client - Group if found, null if not.
-                    AlarmyServer.ClientWriteString(client, 
+                    AlarmyServer.ClientWriteString(client,
                         MessageUtils.BuildMessageString(gqrWrapper.Serialize()));
                 } }
             };
-            
+
             try
             {
                 @switch[mrc.Type]();

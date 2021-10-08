@@ -124,7 +124,7 @@ namespace AlarmyManager
             lock (this)
             {
                 if (_listener == null)
-                { 
+                {
                     return;
                 }
 
@@ -215,17 +215,17 @@ namespace AlarmyManager
             {
                 return;
             }
-            
+
             // No data is available so we drop the connection.
             if (st._conn.Available == 0)
-            { 
-                DropConnection(st); 
+            {
+                DropConnection(st);
             }
             else
             {
-                try 
-                { 
-                    st._provider.OnReceiveData(st); 
+                try
+                {
+                    st._provider.OnReceiveData(st);
                 }
                 catch (Exception ex)
                 {
@@ -259,9 +259,9 @@ namespace AlarmyManager
                 foreach (object obj in CurrentConnections)
                 {
                     ConnectionState st = obj as ConnectionState;
-                    try 
-                    { 
-                        st._provider.OnDropConnection(st); 
+                    try
+                    {
+                        st._provider.OnDropConnection(st);
                     }
                     catch
                     {

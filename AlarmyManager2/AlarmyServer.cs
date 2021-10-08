@@ -7,14 +7,16 @@ namespace AlarmyManager
 {
     internal static class AlarmyServer
     {
-        internal static bool IsRunning { 
-            get 
+        internal static bool IsRunning
+        {
+            get
             {
                 return s_internalServer.IsRunning;
-            }}
+            }
+        }
 
         private static TcpServer s_internalServer;
-        
+
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         internal static void Start(int port, ServerStartParameters parameters)
@@ -23,7 +25,7 @@ namespace AlarmyManager
 
             SecureString CertificatePassword = GetCertificatePassword();
 
-            bool serverStartSuccessful = s_internalServer.Start(Properties.Settings.Default.ServerCertificatePath, 
+            bool serverStartSuccessful = s_internalServer.Start(Properties.Settings.Default.ServerCertificatePath,
                 CertificatePassword);
             if (serverStartSuccessful)
             {
@@ -77,7 +79,7 @@ namespace AlarmyManager
             do
             {
                 ConsoleKeyInfo key = Console.ReadKey(true);
-                
+
                 if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
                 {
                     secureString.AppendChar(key.KeyChar);
@@ -102,7 +104,7 @@ namespace AlarmyManager
             return secureString;
         }
 
-        internal static void SendAlarmToClient(ConnectionState client, Alarm alarm, AlarmType type) 
+        internal static void SendAlarmToClient(ConnectionState client, Alarm alarm, AlarmType type)
         {
             MessageWrapper<ShowAlarmMessage> sam = new MessageWrapper<ShowAlarmMessage>
             {

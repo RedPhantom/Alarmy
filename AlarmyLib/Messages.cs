@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json;
 
 namespace AlarmyLib
 {
@@ -15,7 +14,7 @@ namespace AlarmyLib
     /// <summary>
     /// Describes information sent from the server to the client.
     /// </summary>
-    public class BaseMessage : Transmission 
+    public class BaseMessage : Transmission
     {
         public string Repr()
         {

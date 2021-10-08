@@ -18,7 +18,7 @@
         RTF,
         TextOnly
     }
-    
+
     public enum AlarmStyle
     {
         /// <summary>

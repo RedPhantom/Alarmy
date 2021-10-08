@@ -38,7 +38,7 @@ namespace AlarmyManager
                 Properties.Settings.Default.NeedsUpgrading = false;
                 Properties.Settings.Default.Save();
             }
-            
+
             // Initialize Groups.
             if (!string.IsNullOrEmpty(Properties.Settings.Default.Groups))
             {

@@ -71,9 +71,9 @@ namespace AlarmyManager
         {
             if (dgvGroups.SelectedCells.Count == 1)
             {
-                Group selectedGroup = ManagerState.Groups.Find(x => 
+                Group selectedGroup = ManagerState.Groups.Find(x =>
                     x.ID == (Guid)dgvGroups.SelectedRows[0].Cells[ColumnNameGroupId].Value);
-                
+
                 if (selectedGroup is not null)
                 {
                     ManagerState.Groups.Remove(selectedGroup);

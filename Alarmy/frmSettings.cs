@@ -37,7 +37,7 @@ namespace Alarmy
             Properties.Settings.Default.Groups = JsonConvert.SerializeObject(groups);
 
             Properties.Settings.Default.AlarmStyle = (int)cbAlarmStyle.SelectedItem;
-           
+
             Properties.Settings.Default.Save();
             MessageBox.Show("Settings have been saved.\nRestart Alarmy to apply changes.");
             Close();
@@ -53,7 +53,7 @@ namespace Alarmy
             {
                 Close();
             }
-            
+
             if (!s_changesMade)
             {
                 Close();
