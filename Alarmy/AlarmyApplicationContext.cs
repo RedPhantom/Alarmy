@@ -105,7 +105,6 @@ namespace Alarmy
 
         public void OnStop(object sender, EventArgs e)
         {
-            // Stop the service.
             AlarmyService.Stop();
         }
 

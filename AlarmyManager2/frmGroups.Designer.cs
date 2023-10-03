@@ -42,6 +42,7 @@ namespace AlarmyManager
             this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
             this.label2 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnEditGroup = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvGroups)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
@@ -76,7 +77,7 @@ namespace AlarmyManager
             // 
             // btnRemoveGroup
             // 
-            this.btnRemoveGroup.Location = new System.Drawing.Point(734, 44);
+            this.btnRemoveGroup.Location = new System.Drawing.Point(734, 79);
             this.btnRemoveGroup.Name = "btnRemoveGroup";
             this.btnRemoveGroup.Size = new System.Drawing.Size(94, 29);
             this.btnRemoveGroup.TabIndex = 6;
@@ -144,12 +145,22 @@ namespace AlarmyManager
             // button1
             // 
             this.button1.Enabled = false;
-            this.button1.Location = new System.Drawing.Point(734, 79);
+            this.button1.Location = new System.Drawing.Point(734, 114);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(94, 29);
             this.button1.TabIndex = 12;
             this.button1.Text = "Copy URL";
             this.button1.UseVisualStyleBackColor = true;
+            // 
+            // btnEditGroup
+            // 
+            this.btnEditGroup.Location = new System.Drawing.Point(734, 44);
+            this.btnEditGroup.Name = "btnEditGroup";
+            this.btnEditGroup.Size = new System.Drawing.Size(94, 29);
+            this.btnEditGroup.TabIndex = 13;
+            this.btnEditGroup.Text = "Edit";
+            this.btnEditGroup.UseVisualStyleBackColor = true;
+            this.btnEditGroup.Click += new System.EventHandler(this.btnEditGroup_Click);
             // 
             // frmGroups
             // 
@@ -157,6 +168,7 @@ namespace AlarmyManager
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(846, 506);
+            this.Controls.Add(this.btnEditGroup);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tbGroupName);
@@ -194,5 +206,6 @@ namespace AlarmyManager
         private System.Windows.Forms.ErrorProvider errorProvider;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnEditGroup;
     }
 }

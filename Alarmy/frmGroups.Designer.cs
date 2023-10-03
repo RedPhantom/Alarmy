@@ -62,6 +62,7 @@ namespace Alarmy
             this.mtbGroupUID.Name = "mtbGroupUID";
             this.mtbGroupUID.Size = new System.Drawing.Size(422, 27);
             this.mtbGroupUID.TabIndex = 1;
+            this.mtbGroupUID.Click += new System.EventHandler(this.mtbGroupUID_Click);
             // 
             // clbGroups
             // 
@@ -164,6 +165,7 @@ namespace Alarmy
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "frmGroups";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Group Manager";
             this.Load += new System.EventHandler(this.frmGroups_Load);
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).EndInit();

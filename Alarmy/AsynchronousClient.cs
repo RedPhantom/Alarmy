@@ -1,6 +1,8 @@
 ﻿using AlarmyLib;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -48,7 +50,8 @@ namespace Alarmy
 
         private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private static readonly TimeSpan s_reconnectAttemptWait = new TimeSpan(hours: 0, minutes: 0, seconds: 15);
+        private static readonly TimeSpan s_reconnectAttemptWait = new(hours: 0, minutes: 0, 
+            seconds: Properties.Settings.Default.ReconnectInterval);
 
         /// <summary>
         /// Start the alarmy client.
@@ -97,7 +100,7 @@ namespace Alarmy
                     }
 
                     // Sent initialization message.
-                    Send(client, "              " + GetInitializationMessage(s_instance));
+                    Send(client, GetInitializationMessage(s_instance));
                     s_sendDone.WaitOne();
 
                     // Communication loop.
@@ -128,6 +131,7 @@ namespace Alarmy
                     $"s_sendDone = {s_sendDone.WaitOne(0)}\n" +
                     $"s_recevieDone = {s_receiveDone.WaitOne(0)}\n" +
                     $"s_stopClient = {s_stopClient.WaitOne(0)}\n");
+                MessageBox.Show("Unexpected error in client connect. Check log.");
             }
         }
 
@@ -184,8 +188,11 @@ namespace Alarmy
                     // We received data, handle each message separately.
                     foreach (string message in s_response.Split(Consts.EOFTag, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        HandleMessage(client, message);
+                        PushToMessageQueue(client, message);
                     }
+
+                    // TODO: Maybe call ProcessMessageQueue outside of this logic so it doesn't hang the server.
+                    ProcessMessageQueue();
 
                     // Clean the buffer after parsing all messages.
                     s_response = "";
@@ -194,12 +201,12 @@ namespace Alarmy
                     s_receiveDone.Reset();
                     s_proxy.SignalClient.Set();
                 }
-                else if (readyHandlerIndex == 2)
+                else if (2 == readyHandlerIndex)
                 {
                     // Send data from proxy to server via the Socket client.
                     // TODO: allow messages larget than<BUFFER SIZE>
                     s_proxy.ServerToInternal.Receive(internalToServerBuffer);
-                    s_logger.Debug($"AsynchronousClient Received to send via Proxy {Encoding.UTF8.GetString(internalToServerBuffer)}.");
+                    s_logger.Trace($"AsynchronousClient Received to send via Proxy {Encoding.UTF8.GetString(internalToServerBuffer)}.");
                     client.Send(internalToServerBuffer);
 
                     s_proxy.SignalServer.Reset();
@@ -207,69 +214,135 @@ namespace Alarmy
             }
         }
 
-        private static void HandleMessage(Socket client, string message)
+        /// <summary>
+        /// Process messages waiting in the buffer.
+        /// </summary>
+        private static void PushToMessageQueue(Socket client, string message)
         {
-            // Assume we received a MessageWrapper.
+            // We received a MessageWrapper.
             MessageWrapperContent content = MessageWrapper.Deserialize(message);
 
             // Add the message to the queue.
             lock (AlarmyState.MessageQueue)
             {
-                AlarmyState.MessageQueue.Add(content);
+                // TODO: Either only add specific messages that need to be transferred to the UI
+                //       thread, or perform the rest of the HandleMessage logic based on messages in the message
+                //       queue (i.e. move all of the @switch dictionary to another method which iterates on the
+                //       message queue and empties it).
+                AlarmyState.MessageQueue.Add(new (client, content));
+            }
+        }
+
+        /// <summary>
+        /// Send each message in the queue for handlig. Remove it from the queue if no more handling is required.
+        /// </summary>
+        private static void ProcessMessageQueue()
+        {
+            // Whether the message has been fully processed and can be removed from the buffer.
+            bool treatmentComplete;
+            List<MessageQueueItem> messagesToRemove = new();
+
+            // TODO: Add MessageQueueItem object **which will have its own unique id** if the message content
+            //       doesn't already have one???
+            foreach (MessageQueueItem mqi in AlarmyState.MessageQueue)
+            {
+                // Must be outside of lock() in case processing takes a long time.
+                // We don't want to block access to the queue.
+                treatmentComplete = HandleMessage(mqi.Sender, mqi.Message);
+
+                // TODO: Add a unique ID to the MWC or else the wrong MWC could be removed from the queue?
+                if (treatmentComplete && AlarmyState.MessageQueue.Contains(mqi))
+                {
+                    messagesToRemove.Add(mqi);
+                }
             }
 
+            lock (AlarmyState.MessageQueue)
+            {
+                AlarmyState.MessageQueue.RemoveAll(x => messagesToRemove.Contains(x));
+            }
+        }
+
+
+        /// <summary>
+        /// Handle a message received from the buffer.
+        /// </summary>
+        /// <param name="client">Socket from which the message was received.</param>
+        /// <param name="content">Message content.</param>
+        /// <returns>
+        /// Whether processing and treatment of the message is complete and then message
+        /// can be removed from the queue.
+        /// </returns>
+        private static bool HandleMessage(Socket client, MessageWrapperContent content)
+        {
+            bool treatmentComplete = true;
+
+            // TODO: Find a way to act on @switch without creating a dedicated variable each time.
             // Actions per message type.
-            Dictionary<Type, Action> @switch = new Dictionary<Type, Action> {
+            Dictionary<Type, Action> @switch = new()
+            {
                 // ShowAlarmMessage
                 // Display an alarm to the user.
-                { typeof(ShowAlarmMessage), () => {
-                    ShowAlarmMessage sam = (ShowAlarmMessage)content.Message;
+                {
+                    typeof(ShowAlarmMessage),
+                    () => {
+                        ShowAlarmMessage sam = (ShowAlarmMessage)content.Message;
 
-                    lock (AlarmyState.PastAlarms)
-                    {
-                        AlarmyState.PastAlarms.Add(new HistoricAlarm(sam.Alarm, DateTime.Now, sam.Type));
-                    }
-
-                    // We start the alarm on a new thread so after Show() is called and we return to wait
-                    // on Socket.Receive(), the UI can be responsive.
-                    Thread t = new Thread(new ThreadStart(() => {
-                        frmAlarm frmAlarm = new()
+                        lock (AlarmyState.PastAlarms)
                         {
-                            TopMost = AlarmStyle.Interruptive == (AlarmStyle)Properties.Settings.Default.AlarmStyle
-                        };
+                            AlarmyState.PastAlarms.Add(new(sam.Alarm, DateTime.Now, sam.Type));
+                        }
 
-                        frmAlarm.LoadAlarm(sam.Alarm, sam.Type);
-                        Application.Run(frmAlarm);
-                    }));
-                    t.Start();
-                } },
+                        // We start the alarm on a new thread so after Show() is called and we return to wait
+                        // on Socket.Receive(), the UI can be responsive.
+                        Thread t = new(new ThreadStart(() => {
+                            frmAlarm frmAlarm = new()
+                            {
+                                TopMost = AlarmStyle.Interruptive == (AlarmStyle)Properties.Settings.Default.AlarmStyle
+                            };
+
+                            frmAlarm.LoadAlarm(sam.Alarm, sam.Type);
+                            Application.Run(frmAlarm);
+                        }));
+                        t.Start();
+                    }
+                },
 
                 // PingMessage
                 // Send a response ("pong") to the user.
-                { typeof(PingMessage), () =>
                 {
-                    MessageWrapper<PingResponse> prWrapper = new MessageWrapper<PingResponse>();
-                    PingResponse pr = new PingResponse(s_instance);
-                    prWrapper.Message = pr;
-                    Send(client, prWrapper.Serialize());
-                } },
+                    typeof(PingMessage),
+                    () =>
+                    {
+                        MessageWrapper<PingResponse> prWrapper = new();
+                        PingResponse pr = new(s_instance);
+                        prWrapper.Message = pr;
+                        Send(client, prWrapper.Serialize());
+                    }
+                },
 
                 // ErrorMessage
                 // Got an error from the server, display it to the user.
-                { typeof(ErrorMessage), () =>
                 {
-                    ErrorMessage em = (ErrorMessage)content.Message;
-                    MessageBox.Show($"Received a code {em.Code} error message from the server: \n{em.Text ?? "<no additional data>"}",
-                        "Alarmy: Got error from server");
-                } },
+                    typeof(ErrorMessage),
+                    () =>
+                    {
+                        ErrorMessage em = (ErrorMessage)content.Message;
+                        MessageBox.Show($"Received a code {em.Code} error message from the server: \n{em.Text ?? "<no additional data>"}",
+                            "Alarmy: Got error from server");
+                    }
+                },
 
                 // GroupQueryResponse
                 // Get the response containing the Group information from the server.
-                { typeof(GroupQueryResponse), () =>
                 {
-                    GroupQueryResponse gqr = (GroupQueryResponse)content.Message;
-                    // TODO: somehow pass this to frmGroups.
-                } },
+                    typeof(GroupQueryResponse),
+                    () =>
+                    {
+                        // Message is not handled here, but used up from the Message Queue.
+                        treatmentComplete = false;
+                    }
+                },
             };
 
             try
@@ -284,6 +357,8 @@ namespace Alarmy
             {
                 s_logger.Error(e, $"Unexpected error during message handling. Message: {content.Repr()}.");
             }
+
+            return treatmentComplete;
         }
 
         private static void ConnectCallback(IAsyncResult ar)
@@ -458,8 +533,8 @@ namespace Alarmy
 
         private static string GetInitializationMessage(Instance instance)
         {
-            MessageWrapper<ServiceStartedResponse> initMessageWrapper = new MessageWrapper<ServiceStartedResponse>();
-            ServiceStartedResponse ssm = new ServiceStartedResponse(instance);
+            MessageWrapper<ServiceStartedResponse> initMessageWrapper = new();
+            ServiceStartedResponse ssm = new(instance, new(AlarmyState.Groups.Select(x => x.ID)));
             initMessageWrapper.Message = ssm;
             return initMessageWrapper.Serialize();
         }

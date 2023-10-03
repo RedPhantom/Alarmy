@@ -179,16 +179,17 @@ namespace AlarmyManager
                 s_logger.Error(ex, "Error accepting a connection.");
             }
 
-            // Start the ReceiveData callback loop.
-            try
-            {
-                SslStream sslStream = new SslStream(new NetworkStream(st._conn), false);
-                sslStream.AuthenticateAsServer(s_serverCertificate, clientCertificateRequired: false, checkCertificateRevocation: true);
-            }
-            catch (System.IO.IOException ioe)
-            {
-                s_logger.Error(ioe, "Failed to authenticate client via SSL.");
-            }
+            // Create a new SSL stream from the new server-client connection.
+            // An exception here can mean dropped data between the server and the client. 
+            //try
+            //{
+            //    SslStream sslStream = new(new NetworkStream(st._conn), false);
+            //    sslStream.AuthenticateAsServer(s_serverCertificate, clientCertificateRequired: false, checkCertificateRevocation: true);
+            //}
+            //catch (System.IO.IOException ioe)
+            //{
+            //    s_logger.Error(ioe, "Failed to authenticate client via SSL.");
+            //}
 
             if (st._conn.Connected)
             {
@@ -208,8 +209,11 @@ namespace AlarmyManager
             }
             catch (SocketException)
             {
-                // This was added instead of just return;
+                // In case of an exception during the handle of which we drop the connection
+                // and dispose of the socket, we must return, otherwise any access to st._conn will
+                // cause an ObjectDisposedException.
                 DropConnection(st);
+                return;
             }
             catch (Exception)
             {

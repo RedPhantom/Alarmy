@@ -39,5 +39,21 @@ namespace AlarmyLib
         {
             return $"<Group Name={Name}, ID={ID}, Enabled={Enabled}>";
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(Group))
+            {
+                return false;
+            }
+
+            Group other = (Group)obj;
+
+            // We don't consider Enable since this is a client settings.
+            return ID == other.ID
+                && Name == other.Name;
+        }
+
+        // TODO: override GetHashCode.
     }
 }

@@ -34,9 +34,10 @@ namespace Alarmy
             {
                 groups.Add(group);
             }
-            Properties.Settings.Default.Groups = JsonConvert.SerializeObject(groups);
 
-            Properties.Settings.Default.AlarmStyle = (int)cbAlarmStyle.SelectedItem;
+            // Properties.Settings.Default.Groups is modified directly at btnManageGroups_Click.
+            Properties.Settings.Default.AlarmStyle = cbAlarmStyle.SelectedIndex;
+            Properties.Settings.Default.ReconnectInterval = (int)nudReconnectInterval.Value;
 
             Properties.Settings.Default.Save();
             MessageBox.Show("Settings have been saved.\nRestart Alarmy to apply changes.");
@@ -69,7 +70,10 @@ namespace Alarmy
 
             tbServiceUrl.Text = Properties.Settings.Default.ServiceURL;
             nudServicePort.Value = Properties.Settings.Default.ServicePort;
-            cbAlarmStyle.SelectedItem = Properties.Settings.Default.AlarmStyle;
+            cbAlarmStyle.SelectedIndex = Properties.Settings.Default.AlarmStyle;
+            nudReconnectInterval.Value = Properties.Settings.Default.ReconnectInterval;
+
+            s_changesMade = false;
         }
 
         private void tbServiceUrl_TextChanged(object sender, EventArgs e)
@@ -83,6 +87,11 @@ namespace Alarmy
         }
 
         private void cbAlarmStyle_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            s_changesMade = true;
+        }
+
+        private void nudReconnectInterval_ValueChanged(object sender, EventArgs e)
         {
             s_changesMade = true;
         }
@@ -103,6 +112,7 @@ namespace Alarmy
             if (frmGroups.DialogResult == DialogResult.OK)
             {
                 lbGroups.DataSource = frmGroups.Groups.FindAll(x => x.Enabled);
+                Properties.Settings.Default.Groups = JsonConvert.SerializeObject(frmGroups.Groups);
             }
         }
     }

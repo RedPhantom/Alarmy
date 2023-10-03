@@ -134,7 +134,7 @@ namespace AlarmyManager
 
         internal static void ClientWriteString(ConnectionState client, string s)
         {
-            s_logger.Debug($"Writing {s} to {client.Repr()}.");
+            s_logger.Trace($"Writing {s} to {client.Repr()}.");
             byte[] bytes = Encoding.UTF8.GetBytes(s);
             client.Write(bytes, 0, bytes.Length);
         }

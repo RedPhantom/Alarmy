@@ -11,19 +11,19 @@ namespace AlarmyManager
     public partial class frmManager : Form
     {
         private Thread ServerThread;
-        private readonly Dictionary<Instance, ConnectionState> InstanceToConnection =
-            new Dictionary<Instance, ConnectionState>();
+        private readonly Dictionary<Instance, ConnectionState> InstanceToConnection = new();
 
-        // Instance
+        // Last Seen data grid view
         private const string ColumnNameInstance = "colInstance";
         private const string ColumnHeaderInstance = "Instance";
-
-        // Last Seen
+        
         private const string ColumnNameLastSeen = "colLastSeen";
         private const string ColumnHeaderLastSeen = "Last Seen";
 
         private readonly System.Drawing.Color LastSeenLongAgoBackground = System.Drawing.Color.FromArgb(220, 255, 255);
         private readonly TimeSpan LastSeenLongAgo = new TimeSpan(hours: 1, minutes: 0, seconds: 0);
+
+        private static readonly NLog.Logger s_logger = NLog.LogManager.GetCurrentClassLogger();
 
         public frmManager()
         {
@@ -42,7 +42,7 @@ namespace AlarmyManager
             // Start the server.
             StartServer();
 
-            // Add columns to the data grid view.
+            // Add columns to the Last Seen data grid view.
             dgvLastSeen.Columns.Add(ColumnNameInstance, ColumnHeaderInstance);
             dgvLastSeen.Columns.Add(ColumnNameLastSeen, ColumnHeaderLastSeen);
 
@@ -67,12 +67,13 @@ namespace AlarmyManager
             {
                 tsmiToggleServer.Enabled = false;
                 ServerLauncher ServerLauncher = new ServerLauncher(Properties.Settings.Default.ServicePort);
-                ServerThread = new Thread(() => ServerLauncher.Start(new ServerStartParameters(OnInstancesUpdate, OnServerStart)));
+                ServerThread = new Thread(() => ServerLauncher.Start(new(OnInstancesUpdate, OnServerStart)));
                 ServerThread.Start();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to start the server: {ex}.");
+                s_logger.Fatal(ex, "Server start failed.");
             }
         }
 
@@ -93,6 +94,7 @@ namespace AlarmyManager
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to stop the server: {ex.Message}.");
+                s_logger.Error(ex, "Server stop failed.");
             }
 
             UpdateServerStatus();
@@ -107,6 +109,7 @@ namespace AlarmyManager
             {
                 clbUsers.SetItemChecked(i, true);
             }
+            UpdateRecipientCount();
         }
 
         /// <summary>
@@ -118,6 +121,7 @@ namespace AlarmyManager
             {
                 clbUsers.SetItemChecked(i, false);
             }
+            UpdateRecipientCount();
         }
 
         private void btnSend_Click(object sender, EventArgs e)
@@ -129,6 +133,7 @@ namespace AlarmyManager
             if (0 == clbUsers.CheckedItems.Count)
             {
                 lblStatus.Text = "No users are selected.";
+                s_logger.Info("Cannot deploy alarm: no users selected.");
                 return;
             }
 
@@ -140,12 +145,14 @@ namespace AlarmyManager
             {
                 MessageBox.Show(this, ae.Message, "Value Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation,
                     MessageBoxDefaultButton.Button1);
+                s_logger.Warn(ae, "Value error.");
                 return;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(this, ex.ToString(), "Unexpected error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation,
                     MessageBoxDefaultButton.Button1);
+                s_logger.Error(ex, "Unexpected error.");
                 return;
             }
 
@@ -165,7 +172,7 @@ namespace AlarmyManager
         {
             clbUsers.Enabled = false;
 
-            List<Instance> InstancesToRemove = new();
+            List<Instance> instancesToRemove = new();
             CheckedListBox.CheckedItemCollection targetedInstances = clbUsers.CheckedItems;
 
             foreach (Instance instance in targetedInstances)
@@ -182,30 +189,62 @@ namespace AlarmyManager
                 {
                     // This exception can occur if the client list has not been refreshed
                     // since a client disconnected.
-                    InstancesToRemove.Add(instance);
+                    instancesToRemove.Add(instance);
                 }
             }
 
             lblStatus.Text = "Alarm deployment complete.";
 
             // Remove all irrelevant, disconnected instances.
-            foreach (Instance instance in InstancesToRemove)
+            RemoveInstances(instancesToRemove);
+            
+            if (instancesToRemove.Count > 0)
             {
+                lblStatus.Text += $" Dropped {instancesToRemove.Count} inactive clients.";
+            }
+            
+            s_logger.Info(lblStatus.Text);
+            clbUsers.Enabled = true;
+        }
+
+        /// <summary>
+        /// Remove instances from UI and <see cref="ManagerState"/> elements.
+        /// </summary>
+        /// <param name="instancesToRemove">List of instances to remove.</param>
+        private void RemoveInstances(List<Instance> instancesToRemove)
+        {
+            foreach (Instance instance in instancesToRemove)
+            {
+                List<Group> instanceGroups = ManagerState.GetInstanceGroups(instance);
+
+                // Remove from the instance-to-connection dictionary.
                 InstanceToConnection.Remove(instance);
+
+                // Remove from the client listbox.
                 clbUsers.Items.Remove(instance);
 
+                // Remove from the group treeview.
+                foreach (Group group in instanceGroups)
+                {
+                    // TODO: check if 'Remove from the group treeview.' works properly.
+                    tvGroups.Nodes[group.ID.ToString()].Nodes[instance.ToString()].Remove();
+                }
+
+                // Remove from the ActiveInstances list.
                 lock (ManagerState.ActiveInstances)
                 {
                     ManagerState.ActiveInstances.Remove(instance);
                 }
-            }
 
-            if (InstancesToRemove.Count > 0)
-            {
-                lblStatus.Text += $" Dropped {InstancesToRemove.Count} inactive clients.";
+                // Remove from the group-to-instances dictionary.
+                lock (ManagerState.GroupedInstances)
+                {
+                    foreach (Group group in instanceGroups)
+                    {
+                        ManagerState.GroupedInstances[group].Remove(instance);
+                    }
+                }
             }
-
-            clbUsers.Enabled = true;
         }
 
         private Alarm GetAlarmFromForm()
@@ -221,6 +260,7 @@ namespace AlarmyManager
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             clbUsers.Items.Clear();
+            tvGroups.Nodes.Clear();
             dgvLastSeen.Rows.Clear();
 
             lock (ManagerState.ActiveInstances)
@@ -241,14 +281,48 @@ namespace AlarmyManager
             // Update InstanceToConnection.
             UpdateInstances(args.Instance, args.Connection);
 
-            // Update the UI.
+            // Update the UI:
+            // Users CheckedListBox
             if (ListBox.NoMatches == clbUsers.FindStringExact(args.Instance.ToString()))
             {
                 clbUsers.Invoke((MethodInvoker)delegate
                 {
                     clbUsers.Items.Add(args.Instance);
                 });
+
+                UpdateRecipientCount();
             }
+
+            // Group TreeView
+            UpdateGroupTreeView(args.Instance);
+        }
+
+        /// <summary>
+        /// Update the available groups tree view.
+        /// </summary>
+        /// <param name="instance">A newly connected instance.</param>
+        /// <remarks>This method is called from the server thread.</remarks>
+        private void UpdateGroupTreeView(Instance instance)
+        {
+            tvGroups.Invoke((MethodInvoker)delegate 
+            {
+                foreach (Group group in ManagerState.GetInstanceGroups(instance))
+                {
+                    if (!tvGroups.Nodes.ContainsKey(group.ID.ToString()))
+                    {
+                        // Add the missing group node.
+                        tvGroups.Nodes.Add(group.ID.ToString(), group.Name);
+                    }
+
+                    // Add the instance if it isn't already there.
+                    TreeNode groupNode = tvGroups.Nodes[group.ID.ToString()];
+
+                    if (!groupNode.Nodes.ContainsKey(instance.ToString()))
+                    {
+                        groupNode.Nodes.Add(instance.ToString(), instance.ToString());
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -314,12 +388,6 @@ namespace AlarmyManager
             }
         }
 
-        private void cbRightToLeft_CheckedChanged(object sender, EventArgs e)
-        {
-            rtbContent.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
-            tbTitle.RightToLeft = cbRightToLeft.Checked ? RightToLeft.Yes : RightToLeft.Inherit;
-        }
-
         private void tmrLastSeen_Tick(object sender, EventArgs e)
         {
             UpdateLastSeen();
@@ -360,8 +428,24 @@ namespace AlarmyManager
 
         private void btnTransferSelection_Click(object sender, EventArgs e)
         {
-            List<DataGridViewRow> SelectedRows = new List<DataGridViewRow>();
+            // Selection of dgvLastSeen
+            if (tcDetails.SelectedTab == tpUsersLastSeen)
+            {
+                ApplyLastSeenSelection();
+            }
 
+            // Selection of tvGroups
+            if (tcDetails.SelectedTab == tpGroups)
+            {
+                ApplyGroupSelection();
+            }
+        }
+
+        private void ApplyLastSeenSelection()
+        {
+            List<DataGridViewRow> SelectedRows = new();
+
+            // Transfer the selected cells to list of unique rows.
             foreach (DataGridViewCell cell in dgvLastSeen.SelectedCells)
             {
                 if (!SelectedRows.Contains(cell.OwningRow))
@@ -373,21 +457,61 @@ namespace AlarmyManager
             foreach (DataGridViewRow row in SelectedRows)
             {
                 Instance instance = (Instance)row.Cells[0].Value;
-
-                if (clbUsers.Items.Contains(instance))
-                {
-                    clbUsers.SetItemChecked(clbUsers.Items.IndexOf(instance), true);
-                }
-                else
-                {
-                    lblStatus.Text = $"Failed to find {instance} in the users list.";
-                }
+                AddRecipient(instance);
             }
         }
 
+        private void ApplyGroupSelection()
+        {
+            // Check if the selected node is a group ID.
+            // TODO: is there a better way to do that?
+            Group selectedGroup = ManagerState.Groups.Find(x => x.ID.ToString() == tvGroups.SelectedNode.Name);
+
+            if (selectedGroup is null)
+            {
+                return;
+            }
+
+            // Apply selection of all instances in that group.
+            foreach (Instance instance in ManagerState.GroupedInstances[selectedGroup])
+            {
+                AddRecipient(instance);
+            }
+        }
+
+        /// <summary>
+        /// Check an instance for alarm deployment in clbUsers.
+        /// </summary>
+        private void AddRecipient(Instance instance)
+        {
+            if (clbUsers.Items.Contains(instance))
+            {
+                clbUsers.SetItemChecked(clbUsers.Items.IndexOf(instance), true);
+                UpdateRecipientCount();
+            }
+            else
+            {
+                lblStatus.Text = $"Failed to find {instance} in the recipient list.";
+                s_logger.Warn($"Could not find {instance} in the recipient list.");
+            }
+        }
+
+        /// <summary>
+        /// Updates the recipient count above the recipient list which displayes selected and total
+        /// recipient count.
+        /// </summary>
+        private void UpdateRecipientCount()
+        {
+            lblReceipientCount.Invoke((MethodInvoker)delegate
+            {
+                lblReceipientCount.Text = $"({clbUsers.CheckedItems.Count}/{clbUsers.Items.Count})";
+            });
+        }
+
+        #region HelpHints
         private void btnTransferSelection_MouseHover(object sender, EventArgs e)
         {
-            lblHelp.Text = "Apply the selected users here to the users list.";
+            lblHelp.Text = "Apply the selected users/groups here to the recipient list.";
         }
 
         private void btnStopServer_MouseHover(object sender, EventArgs e)
@@ -402,7 +526,7 @@ namespace AlarmyManager
 
         private void btnSend_MouseHover(object sender, EventArgs e)
         {
-            lblHelp.Text = "Send the message to all selected users.";
+            lblHelp.Text = "Send the message to all selected recipients.";
         }
 
         private void btnRefresh_MouseHover(object sender, EventArgs e)
@@ -419,6 +543,7 @@ namespace AlarmyManager
         {
             lblHelp.Text = "Select all users.";
         }
+        #endregion
 
         private void UpdateServerStatus()
         {
@@ -434,11 +559,6 @@ namespace AlarmyManager
             }
         }
 
-        private void btnGroupManager_Click(object sender, EventArgs e)
-        {
-            new frmGroups().ShowDialog();
-        }
-
         private void cbAlarmType_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cbAlarmType.SelectedItem is not null)
@@ -450,7 +570,9 @@ namespace AlarmyManager
 
         private void tsmiGroupManager_Click(object sender, EventArgs e)
         {
-            new frmGroups().ShowDialog();
+            frmGroups frmGroups = new();
+            frmGroups.ShowDialog();
+            frmGroups.Dispose();
         }
 
         private void tsmiToggleServer_Click(object sender, EventArgs e)
@@ -458,12 +580,15 @@ namespace AlarmyManager
             if (AlarmyServer.IsRunning)
             {
                 lblStatus.Text = "Stopping server...";
+                s_logger.Info("Stopping server.");
                 StopServer();
                 lblStatus.Text = "Server stopped.";
+                s_logger.Info("Server stopped.");
             }
             else
             {
                 lblStatus.Text = "Starting server...";
+                s_logger.Info("Starting server.");
                 StartServer();
                 // The server status and application status will change when the server starts up successfully.
             }
@@ -487,6 +612,40 @@ namespace AlarmyManager
             }
 
             Application.Exit();
+        }
+
+        private void tsmiSettings_Click(object sender, EventArgs e)
+        {
+            frmSettings frmSettings = new();
+            frmSettings.ShowDialog();
+            frmSettings.Dispose();
+        }
+
+        private void tsmiAbout_Click(object sender, EventArgs e)
+        {
+            frmAbout frmAbout = new();
+            frmAbout.ShowDialog();
+            frmAbout.Dispose();
+        }
+
+        private void clbUsers_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            UpdateRecipientCount();
+        }
+
+        private void clbUsers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateRecipientCount();
+        }
+
+        private void clbUsers_SelectedValueChanged(object sender, EventArgs e)
+        {
+            UpdateRecipientCount();
+        }
+
+        private void clbUsers_Click(object sender, EventArgs e)
+        {
+            UpdateRecipientCount();
         }
     }
 }

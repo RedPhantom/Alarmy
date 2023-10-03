@@ -45,17 +45,21 @@ namespace AlarmyManager
             this.lblServerStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblHelp = new System.Windows.Forms.ToolStripStatusLabel();
-            this.label4 = new System.Windows.Forms.Label();
             this.tmrLastSeen = new System.Windows.Forms.Timer(this.components);
-            this.dgvLastSeen = new System.Windows.Forms.DataGridView();
             this.btnTransferSelection = new System.Windows.Forms.Button();
             this.tbUid = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.tcDetails = new System.Windows.Forms.TabControl();
+            this.tpUsersLastSeen = new System.Windows.Forms.TabPage();
+            this.dgvLastSeen = new System.Windows.Forms.DataGridView();
+            this.tpGroups = new System.Windows.Forms.TabPage();
+            this.tvGroups = new System.Windows.Forms.TreeView();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.clbUsers = new System.Windows.Forms.CheckedListBox();
+            this.lblReceipientCount = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.label6 = new System.Windows.Forms.Label();
             this.cbAlarmType = new System.Windows.Forms.ComboBox();
@@ -70,10 +74,17 @@ namespace AlarmyManager
             this.tsmiRightToLeft = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiLeftToRight = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmiGroupManager = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.usageGuideToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmiAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.tcDetails.SuspendLayout();
+            this.tpUsersLastSeen.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).BeginInit();
+            this.tpGroups.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
@@ -121,9 +132,9 @@ namespace AlarmyManager
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(3, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(89, 20);
+            this.label1.Size = new System.Drawing.Size(77, 20);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Target Users";
+            this.label1.Text = "Recipients";
             // 
             // label2
             // 
@@ -191,7 +202,6 @@ namespace AlarmyManager
             this.cbRightToLeft.Text = "Right to Left mode";
             this.cbRightToLeft.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.cbRightToLeft.UseVisualStyleBackColor = true;
-            this.cbRightToLeft.CheckedChanged += new System.EventHandler(this.cbRightToLeft_CheckedChanged);
             this.cbRightToLeft.MouseHover += new System.EventHandler(this.cbRightToLeft_MouseHover);
             // 
             // statusStrip
@@ -232,37 +242,11 @@ namespace AlarmyManager
             this.lblHelp.Size = new System.Drawing.Size(299, 20);
             this.lblHelp.Text = "Hover over an element to learn about it.";
             // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(44, 20);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "Users";
-            // 
             // tmrLastSeen
             // 
             this.tmrLastSeen.Enabled = true;
             this.tmrLastSeen.Interval = 3000;
             this.tmrLastSeen.Tick += new System.EventHandler(this.tmrLastSeen_Tick);
-            // 
-            // dgvLastSeen
-            // 
-            this.dgvLastSeen.AllowUserToAddRows = false;
-            this.dgvLastSeen.AllowUserToDeleteRows = false;
-            this.dgvLastSeen.AllowUserToOrderColumns = true;
-            this.dgvLastSeen.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvLastSeen.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvLastSeen.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvLastSeen.Location = new System.Drawing.Point(3, 29);
-            this.dgvLastSeen.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.dgvLastSeen.Name = "dgvLastSeen";
-            this.dgvLastSeen.ReadOnly = true;
-            this.dgvLastSeen.RowHeadersWidth = 51;
-            this.dgvLastSeen.RowTemplate.Height = 24;
-            this.dgvLastSeen.Size = new System.Drawing.Size(361, 581);
-            this.dgvLastSeen.TabIndex = 12;
             // 
             // btnTransferSelection
             // 
@@ -320,19 +304,76 @@ namespace AlarmyManager
             // 
             this.tableLayoutPanel2.ColumnCount = 1;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Controls.Add(this.label4, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.dgvLastSeen, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.btnTransferSelection, 0, 2);
+            this.tableLayoutPanel2.Controls.Add(this.tcDetails, 0, 0);
+            this.tableLayoutPanel2.Controls.Add(this.btnTransferSelection, 0, 1);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(869, 4);
             this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 3;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel2.RowCount = 2;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 46F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(367, 660);
             this.tableLayoutPanel2.TabIndex = 0;
+            // 
+            // tcDetails
+            // 
+            this.tcDetails.Controls.Add(this.tpUsersLastSeen);
+            this.tcDetails.Controls.Add(this.tpGroups);
+            this.tcDetails.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tcDetails.Location = new System.Drawing.Point(3, 3);
+            this.tcDetails.Name = "tcDetails";
+            this.tcDetails.SelectedIndex = 0;
+            this.tcDetails.Size = new System.Drawing.Size(361, 608);
+            this.tcDetails.TabIndex = 15;
+            // 
+            // tpUsersLastSeen
+            // 
+            this.tpUsersLastSeen.Controls.Add(this.dgvLastSeen);
+            this.tpUsersLastSeen.Location = new System.Drawing.Point(4, 29);
+            this.tpUsersLastSeen.Name = "tpUsersLastSeen";
+            this.tpUsersLastSeen.Padding = new System.Windows.Forms.Padding(3);
+            this.tpUsersLastSeen.Size = new System.Drawing.Size(353, 575);
+            this.tpUsersLastSeen.TabIndex = 0;
+            this.tpUsersLastSeen.Text = "Users";
+            this.tpUsersLastSeen.UseVisualStyleBackColor = true;
+            // 
+            // dgvLastSeen
+            // 
+            this.dgvLastSeen.AllowUserToAddRows = false;
+            this.dgvLastSeen.AllowUserToDeleteRows = false;
+            this.dgvLastSeen.AllowUserToOrderColumns = true;
+            this.dgvLastSeen.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvLastSeen.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvLastSeen.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvLastSeen.Location = new System.Drawing.Point(3, 3);
+            this.dgvLastSeen.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.dgvLastSeen.Name = "dgvLastSeen";
+            this.dgvLastSeen.ReadOnly = true;
+            this.dgvLastSeen.RowHeadersWidth = 51;
+            this.dgvLastSeen.RowTemplate.Height = 24;
+            this.dgvLastSeen.Size = new System.Drawing.Size(347, 569);
+            this.dgvLastSeen.TabIndex = 13;
+            // 
+            // tpGroups
+            // 
+            this.tpGroups.Controls.Add(this.tvGroups);
+            this.tpGroups.Location = new System.Drawing.Point(4, 29);
+            this.tpGroups.Name = "tpGroups";
+            this.tpGroups.Padding = new System.Windows.Forms.Padding(3);
+            this.tpGroups.Size = new System.Drawing.Size(353, 575);
+            this.tpGroups.TabIndex = 1;
+            this.tpGroups.Text = "Groups";
+            this.tpGroups.UseVisualStyleBackColor = true;
+            // 
+            // tvGroups
+            // 
+            this.tvGroups.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tvGroups.Location = new System.Drawing.Point(3, 3);
+            this.tvGroups.Name = "tvGroups";
+            this.tvGroups.Size = new System.Drawing.Size(347, 569);
+            this.tvGroups.TabIndex = 0;
             // 
             // tableLayoutPanel3
             // 
@@ -369,6 +410,7 @@ namespace AlarmyManager
             this.tableLayoutPanel4.Controls.Add(this.label1, 0, 0);
             this.tableLayoutPanel4.Controls.Add(this.btnRefresh, 2, 2);
             this.tableLayoutPanel4.Controls.Add(this.clbUsers, 0, 1);
+            this.tableLayoutPanel4.Controls.Add(this.lblReceipientCount, 1, 0);
             this.tableLayoutPanel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel4.Location = new System.Drawing.Point(3, 4);
             this.tableLayoutPanel4.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -391,6 +433,19 @@ namespace AlarmyManager
             this.clbUsers.Name = "clbUsers";
             this.clbUsers.Size = new System.Drawing.Size(297, 587);
             this.clbUsers.TabIndex = 8;
+            this.clbUsers.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.clbUsers_ItemCheck);
+            this.clbUsers.Click += new System.EventHandler(this.clbUsers_Click);
+            this.clbUsers.SelectedIndexChanged += new System.EventHandler(this.clbUsers_SelectedIndexChanged);
+            this.clbUsers.SelectedValueChanged += new System.EventHandler(this.clbUsers_SelectedValueChanged);
+            // 
+            // lblReceipientCount
+            // 
+            this.lblReceipientCount.AutoSize = true;
+            this.lblReceipientCount.Location = new System.Drawing.Point(103, 0);
+            this.lblReceipientCount.Name = "lblReceipientCount";
+            this.lblReceipientCount.Size = new System.Drawing.Size(27, 20);
+            this.lblReceipientCount.TabIndex = 9;
+            this.lblReceipientCount.Text = "---";
             // 
             // flowLayoutPanel1
             // 
@@ -429,7 +484,8 @@ namespace AlarmyManager
             this.msMain.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.msMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.deploymentToolStripMenuItem});
+            this.deploymentToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.msMain.Location = new System.Drawing.Point(0, 0);
             this.msMain.Name = "msMain";
             this.msMain.Size = new System.Drawing.Size(1239, 28);
@@ -450,7 +506,7 @@ namespace AlarmyManager
             // tsmiToggleServer
             // 
             this.tsmiToggleServer.Name = "tsmiToggleServer";
-            this.tsmiToggleServer.Size = new System.Drawing.Size(224, 26);
+            this.tsmiToggleServer.Size = new System.Drawing.Size(203, 26);
             this.tsmiToggleServer.Text = "Server starting...";
             this.tsmiToggleServer.ToolTipText = "Toggle the server status - running or stopped";
             this.tsmiToggleServer.Click += new System.EventHandler(this.tsmiToggleServer_Click);
@@ -459,18 +515,19 @@ namespace AlarmyManager
             // 
             this.tsmiSettings.Name = "tsmiSettings";
             this.tsmiSettings.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F)));
-            this.tsmiSettings.Size = new System.Drawing.Size(224, 26);
+            this.tsmiSettings.Size = new System.Drawing.Size(203, 26);
             this.tsmiSettings.Text = "&Settings...";
+            this.tsmiSettings.Click += new System.EventHandler(this.tsmiSettings_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(200, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(203, 26);
             this.exitToolStripMenuItem.Text = "&Exit";
             this.exitToolStripMenuItem.ToolTipText = "Stop the server and quit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
@@ -497,14 +554,14 @@ namespace AlarmyManager
             // tsmiRightToLeft
             // 
             this.tsmiRightToLeft.Name = "tsmiRightToLeft";
-            this.tsmiRightToLeft.Size = new System.Drawing.Size(224, 26);
+            this.tsmiRightToLeft.Size = new System.Drawing.Size(174, 26);
             this.tsmiRightToLeft.Text = "Right to Left";
             this.tsmiRightToLeft.Click += new System.EventHandler(this.tsmiRightToLeft_Click);
             // 
             // tsmiLeftToRight
             // 
             this.tsmiLeftToRight.Name = "tsmiLeftToRight";
-            this.tsmiLeftToRight.Size = new System.Drawing.Size(224, 26);
+            this.tsmiLeftToRight.Size = new System.Drawing.Size(174, 26);
             this.tsmiLeftToRight.Text = "Left to Right";
             this.tsmiLeftToRight.Click += new System.EventHandler(this.tsmiLeftToRight_Click);
             // 
@@ -516,6 +573,34 @@ namespace AlarmyManager
             this.tsmiGroupManager.Text = "&Group Manager...";
             this.tsmiGroupManager.ToolTipText = "Create and manage groups";
             this.tsmiGroupManager.Click += new System.EventHandler(this.tsmiGroupManager_Click);
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.usageGuideToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.tsmiAbout});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.helpToolStripMenuItem.Text = "&Help";
+            // 
+            // usageGuideToolStripMenuItem
+            // 
+            this.usageGuideToolStripMenuItem.Name = "usageGuideToolStripMenuItem";
+            this.usageGuideToolStripMenuItem.Size = new System.Drawing.Size(185, 26);
+            this.usageGuideToolStripMenuItem.Text = "&Usage Guide...";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(182, 6);
+            // 
+            // tsmiAbout
+            // 
+            this.tsmiAbout.Name = "tsmiAbout";
+            this.tsmiAbout.Size = new System.Drawing.Size(185, 26);
+            this.tsmiAbout.Text = "&About...";
+            this.tsmiAbout.Click += new System.EventHandler(this.tsmiAbout_Click);
             // 
             // frmManager
             // 
@@ -534,10 +619,12 @@ namespace AlarmyManager
             this.Load += new System.EventHandler(this.frmManager_Load);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).EndInit();
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
+            this.tcDetails.ResumeLayout(false);
+            this.tpUsersLastSeen.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvLastSeen)).EndInit();
+            this.tpGroups.ResumeLayout(false);
             this.tableLayoutPanel3.ResumeLayout(false);
             this.tableLayoutPanel3.PerformLayout();
             this.tableLayoutPanel4.ResumeLayout(false);
@@ -563,9 +650,7 @@ namespace AlarmyManager
         private System.Windows.Forms.CheckBox cbRightToLeft;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
-        private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Timer tmrLastSeen;
-        private System.Windows.Forms.DataGridView dgvLastSeen;
         private System.Windows.Forms.Button btnTransferSelection;
         private System.Windows.Forms.ToolStripStatusLabel lblHelp;
         private System.Windows.Forms.ToolStripStatusLabel lblServerStatus;
@@ -590,6 +675,16 @@ namespace AlarmyManager
         private System.Windows.Forms.ToolStripMenuItem tsmiRightToLeft;
         private System.Windows.Forms.ToolStripMenuItem tsmiLeftToRight;
         private System.Windows.Forms.ToolStripMenuItem tsmiGroupManager;
+        private System.Windows.Forms.TabControl tcDetails;
+        private System.Windows.Forms.TabPage tpUsersLastSeen;
+        private System.Windows.Forms.DataGridView dgvLastSeen;
+        private System.Windows.Forms.TabPage tpGroups;
+        private System.Windows.Forms.TreeView tvGroups;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem usageGuideToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem tsmiAbout;
+        private System.Windows.Forms.Label lblReceipientCount;
     }
 }
 

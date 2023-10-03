@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <style>
+        .note {
+            padding: 15px 15px 15px 15px;
+            background-color: #ffffad;
+        }
+
+        .warning {
+            padding: 15px 15px 15px 15px;
+            background-color: #ffa9a9;
+        }
+
+        h1 {
+            border-bottom: 2px solid #bbbbbb;
+        }
+
+        h2 {
+            font-size: 1.3em;
+            border-bottom: 1px solid #dddddd;
+        }
+    </style>
+    <title>Alarmy Manager Help</title>
+</head>
+<body>
+    <section>
+        <h1>Introduction</h1>
+        <p>
+            <strong>Alarmy</strong> is designed to provide organization-wide reliable alarm capabilities.
+            Alarmy services are offered by a central server.
+        </p>
+        <p>
+            This document contains operation instructions for the Alarmy Manager.
+        </p>
+        <p>
+            The application is still in its testing phase.
+        </p>
+
+        <h2>Future Capabilities</h2>
+        <p>
+            Following is a list of future Alarmy features.
+            <ul>
+                <li>Remote server management capabilities.</li>
+                <li>Settings management interface (instead of a text-based file).</li>
+            </ul>
+        </p>
+    </section>
+
+    <section>
+        <h1>Primary Interface</h1>
+        <p>
+            Information about the different parts and components in the application's primary interface.
+        </p>
+    </section>
+    
+    <section>
+        <h2>Layout</h2>
+        <p>
+            The interface is divided into several parts, each part contains one or more sections.
+        </p>
+        <p>
+            From top to bottom, the first part - the header - contains the <strong>manager context menu</strong>.<br />
+            The second part - from left to right - contains the <strong>Recipient List</strong>, <strong>Alarm Creation Panel</strong>
+            and the <strong>Users and Groups Selection Panel</strong>.<br />
+            The third part - the footer - contains the <strong>Server Status Indicator</strong> and the <strong>Hover Help Tooltip</strong>
+        </p>
+    </section>
+    
+    <section>
+        <h2>Manager Context Menu</h2>
+        <p>
+            <ul>
+                <li>
+                    <strong>File</strong>
+                    <ul>
+                        <li><strong>Start Server</strong>/<strong>Stop Server</strong> - control the server.</li>
+                        <li><strong>Settings</strong> - manage server settings and configuration.</li>
+                        <li><strong>Exit</strong> - stop and exit the application.</li>
+                    </ul>
+                </li>
+
+                <li>
+                    <strong>Deployment</strong>
+                    <ul>
+                        <li>
+                            <strong>Alarm Direction</strong> - control whether the alarm will be displayed
+                            to the user aligned to the right (RTL languages like Hebrew) or LTR.
+                        </li>
+                        <li><strong>Group Manager</strong> - manage the supported user groups on the server.</li>
+                    </ul>
+                </li>
+
+                <li>
+                    <strong>Help</strong>
+                    <ul>
+                        <li><strong>Usage Guide</strong> - open this guide.</li>
+                        <li><strong>About</strong> - display version, author and diagnostic information.</li>
+                    </ul>
+                </li>
+            </ul>
+        </p>
+    </section>
+
+    <section>
+        <h2>Recipient List</h2>
+        <p>
+            List of connected users. Checked boxes affect which users will receive the deployed alarm.
+            The list can be refreshed by clicking the <strong>Refresh</strong> button below it.
+            User selection can be quickly made by the <strong>All</strong> (which selects all users)
+            and <strong>None</strong> (which clears the recipient selections).
+        </p>
+        <p class="note">
+            <i>Note</i>: user IDs are composed of the user's computer name and logged in user name.
+            Multiple users can be logged in on the same computer (if it's a server, for example)
+            and only specified user(s) on that server can be selected as recipients.
+        </p>
+        <p class="note">
+            <i>Note</i>: the Recipient List doesn't rapidly refresh. A user may have disconnected from
+            the server but still be displayed in the Recipient List and other parts of the application.
+            Deploying an alarm to a user that has been disconnected will remove that user from the Recipient
+            List. It's recommended to refresh the Recipient List before sending an alarm, if a specific
+            user is targeted. A future feature may indicate which users should be connected to the server
+            but have since lost connection.
+        </p>
+    </section>
+
+    <section>
+        <h2>Alarm Creation Panel</h2>
+        <p>
+            Composed of several fields, the Alarm Creation Panel is the interface in which the system
+            administrator creates the alarms which will be deployed to recipient users.
+        </p>
+        <p>
+            The <strong>Alarm ID</strong> is a unique string which is used to differ one alarm from another.
+            It is automatically generated and cannot be changed. The Alarm ID is used to coordinate between
+            the system administrator and the user, as well as provide future alarm verification services.
+        </p>
+        <p>
+            The <strong>Title</strong> field contains the title of the alarm displayed to the user.
+            It can only contain plain text.
+        </p>
+        <p>
+            The <strong>Content</strong> field contains the body of the alarm displayed to the user.
+            It can contain plain or rich text. As the application doesn't contain a built-in rich text
+            format editor, it's recommended that rich text alarms are first created in an application like
+            Wordpad or Microsoft Word and then copied and pasted into the Content field.
+        </p>
+        <p class="warning">
+            <i>Warning</i>: Rich Text alarms allow for sending binary objects, including executable files.
+            To protect users from malicious content, users cannot interact with Rich Text alarms.
+            Limitations include deactivating hyperlinks and RTF object interaction. For organizations with
+            security concerns or on systems connected to the internet, it's recommended to use Text Only
+            alarms.
+        </p>
+        <p>
+            The <strong>Send</strong> button deploys the alarm across the selected recipients in the
+            Recipient List.
+        </p>
+    </section>
+    
+    <section>
+        <h2>Users and Groups Selection Panel</h2>
+        <p>
+            This panel contains two tabs: <strong>Users</strong> and <strong>Groups</strong>.
+        </p>
+        <p>
+            The <strong>Users</strong> tab lists all users that have logged on to the server and the time
+            of last contact. Users with an especially old last contact time are marked.
+        </p>
+        <p>
+            The <strong>Groups</strong> tab lists all groups that support alarm deployment. There needs to be
+            at least one connected user of that group for that group to appear in the Groups tab.
+        </p>
+        <p>
+            The <strong>Target Selected</strong> button will apply the selected Users or Groups (depends on
+            the selected tab) to the Recipient List.
+        </p>
+    </section>
+    
+    <section>
+        <h2>Server Status Indicator</h2>
+        <p>
+            This indicator shows the server status: <i>Starting Up</i>, <i>Running</i> or <i>Stopped</i>.
+        </p>
+        <p class="note">
+            <i>Note</i>: If the server appears to be "stuck" in the <i>Starting Up</i> phase, check the
+            Server Information Console. The server may be waiting for you to type the certificate password.
+        </p>
+    </section>
+    
+    <section>
+        <h1>Server Information Console</h1>
+        <p>
+            This console opens alongside the primary interface. It is used to report and display system events
+            to the system administrator. The severity of events displayed can be configured in the Settings menu
+            available under the File menu in the Primary Interface.
+        </p>
+        <p>
+            On sysytems with a certificate configured, the Server Information Console will wait for the sysytem
+            administrator to type the certificate password before the startup procedure can continue. Until then,
+            the server status will be displayed as Starting Up.
+        </p>
+    </section>
+
+    <section>
+        <h1>Group Manager</h1>
+        <p>
+            The <strong>Group Manager</strong> allows the system administrator to add, edit and remove
+            groups to which users can associate themselved.
+        </p>
+        <p>
+            To add a group, type a group name in the designated textbox and click <strong>Add</strong> or <code>TAB</code>.<br />
+            To remove a group, select a group and click <strong>Remove</strong>.<br />
+            To edit a group, click it, type its new name in the designated textbox name and click <strong>Edit</strong>.
+        </p>
+        <p>
+            Save your changes by clicking <strong>Apply</strong>.
+        </p>
+        <p class="note">
+            <i>Note</i>: editing a group's name doesn't change it's ID. The modified name will only be shown to
+            new clients, or clients that refresh their group list.
+        </p>
+    </section>
+    
+    <section>
+        <h1>Settings</h1>
+        <p>
+            This feature is not yet implemented.
+        </p>
+    </section>
+
+</body>
+</html>

@@ -122,5 +122,29 @@ namespace AlarmyManager.Properties {
                 this["AlarmType"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseSsl {
+            get {
+                return ((bool)(this["UseSsl"]));
+            }
+            set {
+                this["UseSsl"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ExportAlarms {
+            get {
+                return ((bool)(this["ExportAlarms"]));
+            }
+            set {
+                this["ExportAlarms"] = value;
+            }
+        }
     }
 }

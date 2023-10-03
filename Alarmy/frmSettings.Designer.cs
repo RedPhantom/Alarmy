@@ -45,8 +45,12 @@ namespace Alarmy
             this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
             this.label5 = new System.Windows.Forms.Label();
             this.tbInstance = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.nudReconnectInterval = new System.Windows.Forms.NumericUpDown();
+            this.label7 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nudServicePort)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudReconnectInterval)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -78,7 +82,7 @@ namespace Alarmy
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(320, 307);
+            this.btnSave.Location = new System.Drawing.Point(328, 362);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(94, 29);
             this.btnSave.TabIndex = 1;
@@ -88,7 +92,7 @@ namespace Alarmy
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(420, 307);
+            this.btnCancel.Location = new System.Drawing.Point(428, 362);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(94, 29);
             this.btnCancel.TabIndex = 1;
@@ -98,7 +102,7 @@ namespace Alarmy
             // 
             // tbServiceUrl
             // 
-            this.tbServiceUrl.Location = new System.Drawing.Point(132, 50);
+            this.tbServiceUrl.Location = new System.Drawing.Point(140, 50);
             this.tbServiceUrl.Name = "tbServiceUrl";
             this.tbServiceUrl.Size = new System.Drawing.Size(382, 27);
             this.tbServiceUrl.TabIndex = 3;
@@ -106,7 +110,7 @@ namespace Alarmy
             // 
             // nudServicePort
             // 
-            this.nudServicePort.Location = new System.Drawing.Point(132, 83);
+            this.nudServicePort.Location = new System.Drawing.Point(140, 83);
             this.nudServicePort.Maximum = new decimal(new int[] {
             65534,
             0,
@@ -134,7 +138,7 @@ namespace Alarmy
             this.cbAlarmStyle.Items.AddRange(new object[] {
             "Interruptive",
             "Background"});
-            this.cbAlarmStyle.Location = new System.Drawing.Point(132, 266);
+            this.cbAlarmStyle.Location = new System.Drawing.Point(140, 266);
             this.cbAlarmStyle.Name = "cbAlarmStyle";
             this.cbAlarmStyle.Size = new System.Drawing.Size(133, 28);
             this.cbAlarmStyle.TabIndex = 6;
@@ -143,7 +147,7 @@ namespace Alarmy
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(13, 269);
+            this.label4.Location = new System.Drawing.Point(12, 269);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(85, 20);
             this.label4.TabIndex = 7;
@@ -153,7 +157,7 @@ namespace Alarmy
             // 
             this.lbGroups.FormattingEnabled = true;
             this.lbGroups.ItemHeight = 20;
-            this.lbGroups.Location = new System.Drawing.Point(132, 116);
+            this.lbGroups.Location = new System.Drawing.Point(140, 116);
             this.lbGroups.Name = "lbGroups";
             this.lbGroups.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.lbGroups.Size = new System.Drawing.Size(345, 144);
@@ -161,7 +165,7 @@ namespace Alarmy
             // 
             // btnManageGroups
             // 
-            this.btnManageGroups.Location = new System.Drawing.Point(483, 116);
+            this.btnManageGroups.Location = new System.Drawing.Point(491, 116);
             this.btnManageGroups.Name = "btnManageGroups";
             this.btnManageGroups.Size = new System.Drawing.Size(31, 144);
             this.btnManageGroups.TabIndex = 9;
@@ -184,11 +188,51 @@ namespace Alarmy
             // 
             // tbInstance
             // 
-            this.tbInstance.Location = new System.Drawing.Point(132, 15);
+            this.tbInstance.Location = new System.Drawing.Point(141, 17);
             this.tbInstance.Name = "tbInstance";
             this.tbInstance.ReadOnly = true;
             this.tbInstance.Size = new System.Drawing.Size(381, 27);
             this.tbInstance.TabIndex = 11;
+            // 
+            // label6
+            // 
+            this.label6.Location = new System.Drawing.Point(12, 302);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(122, 49);
+            this.label6.TabIndex = 12;
+            this.label6.Text = "Reconnect Attempt Interval";
+            // 
+            // nudReconnectInterval
+            // 
+            this.nudReconnectInterval.Location = new System.Drawing.Point(140, 302);
+            this.nudReconnectInterval.Maximum = new decimal(new int[] {
+            300,
+            0,
+            0,
+            0});
+            this.nudReconnectInterval.Minimum = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            this.nudReconnectInterval.Name = "nudReconnectInterval";
+            this.nudReconnectInterval.Size = new System.Drawing.Size(133, 27);
+            this.nudReconnectInterval.TabIndex = 13;
+            this.nudReconnectInterval.Value = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            this.nudReconnectInterval.ValueChanged += new System.EventHandler(this.nudReconnectInterval_ValueChanged);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(279, 304);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(49, 20);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "(secs.)";
             // 
             // frmSettings
             // 
@@ -196,7 +240,10 @@ namespace Alarmy
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(525, 348);
+            this.ClientSize = new System.Drawing.Size(542, 403);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.nudReconnectInterval);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.tbInstance);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.btnManageGroups);
@@ -220,6 +267,7 @@ namespace Alarmy
             this.Load += new System.EventHandler(this.frmSettings_Load);
             ((System.ComponentModel.ISupportInitialize)(this.nudServicePort)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudReconnectInterval)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -241,5 +289,8 @@ namespace Alarmy
         private System.Windows.Forms.ErrorProvider errorProvider;
         private System.Windows.Forms.TextBox tbInstance;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.NumericUpDown nudReconnectInterval;
+        private System.Windows.Forms.Label label6;
     }
 }

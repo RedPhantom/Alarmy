@@ -9,14 +9,29 @@ namespace AlarmyLib
     // Reference for serialization and deserialization in this class are taken from here:
     // https://stackoverflow.com/questions/38679972/determine-type-during-json-deserialize.
 
-    public class Transmission { }
+    public class Transmission 
+    {
+        /// <remarks>
+        /// By default, ToString() should return Repr() since we don't plan
+        /// on showing nicely formatted Transmissions to the user.
+        /// </remarks>
+        public override string ToString()
+        {
+            return Repr();
+        }
+
+        public string Repr()
+        {
+            return $"<Transmission>";
+        }
+    }
 
     /// <summary>
     /// Describes information sent from the server to the client.
     /// </summary>
     public class BaseMessage : Transmission
     {
-        public string Repr()
+        public new string Repr()
         {
             return $"<BaseMessage>";
         }
@@ -34,7 +49,7 @@ namespace AlarmyLib
             Instance = instance;
         }
 
-        public string Repr()
+        public new string Repr()
         {
             return $"<BaseResponse Instance={Instance}>";
         }
@@ -71,9 +86,38 @@ namespace AlarmyLib
             Type = type;
         }
 
+        public override string ToString()
+        {
+            return Repr();
+        }
+
         public string Repr()
         {
             return $"<MessageWrapperContent Type={Type}, Message={Message}>";
+        }
+
+        public override bool Equals(object obj)
+        {
+            MessageWrapperContent _other;
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            _other = (MessageWrapperContent)obj;
+
+            // TODO: maybe deserialze in order to compare? maybe instead of adding Equals to MWC and MQI just add a unique id?
+            return _other.Message == Message &&
+                   _other.Type == Type;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+            throw new NotImplementedException();
+            return base.GetHashCode();
         }
     }
 
@@ -89,6 +133,11 @@ namespace AlarmyLib
         public string Serialize()
         {
             return JsonConvert.SerializeObject(this);
+        }
+
+        public override string ToString()
+        {
+            return Repr();
         }
 
         public string Repr()
@@ -108,11 +157,6 @@ namespace AlarmyLib
         {
             Alarm = alarm;
             Type = type;
-        }
-
-        public override string ToString()
-        {
-            return $"{Alarm} ({Type})";
         }
 
         public new string Repr()
@@ -146,11 +190,6 @@ namespace AlarmyLib
             Text = text;
         }
 
-        public override string ToString()
-        {
-            return $"{Code}: {Text}";
-        }
-
         public new string Repr()
         {
             return $"<ErrorMessage Code={Code}, Text={Text}>";
@@ -164,11 +203,6 @@ namespace AlarmyLib
         public GroupQueryMessage(Guid groupId)
         {
             GroupID = groupId;
-        }
-
-        public override string ToString()
-        {
-            return $"GroupID={GroupID}";
         }
 
         public new string Repr()
@@ -201,11 +235,6 @@ namespace AlarmyLib
             }
         }
 
-        public override string ToString()
-        {
-            return $"Instance={Instance}, GroupIDs={string.Join(", ", GroupIDs)}";
-        }
-
         public new string Repr()
         {
             return $"<ServiceStartedResponse Instance={Instance}, GroupIDs={string.Join(", ", GroupIDs)}>";
@@ -217,11 +246,6 @@ namespace AlarmyLib
         public PingResponse(Instance instance) : base(instance)
         {
             // No additional data is included.
-        }
-
-        public override string ToString()
-        {
-            return $"Instance={Instance}";
         }
 
         public new string Repr()
@@ -237,11 +261,6 @@ namespace AlarmyLib
         public GroupQueryResponse(Instance instance, Group group) : base(instance)
         {
             Group = group;
-        }
-
-        public override string ToString()
-        {
-            return $"Instance={Instance}, Group={Group}";
         }
 
         public new string Repr()

@@ -82,5 +82,17 @@ namespace Alarmy.Properties {
                 this["NeedsUpgrading"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        public int ReconnectInterval {
+            get {
+                return ((int)(this["ReconnectInterval"]));
+            }
+            set {
+                this["ReconnectInterval"] = value;
+            }
+        }
     }
 }

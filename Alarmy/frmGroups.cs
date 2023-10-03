@@ -10,7 +10,7 @@ namespace Alarmy
     public partial class frmGroups : Form
     {
         // Only modified during btnApply click.
-        internal List<Group> Groups { get; private set; }
+        internal List<Group> Groups { get; private set; } = new();
 
         private static bool s_changesMade = false;
         private static InternalProxy s_proxy;
@@ -28,6 +28,8 @@ namespace Alarmy
             {
                 clbGroups.Items.Add(group, group.Enabled);
             }
+
+            s_changesMade = false;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -51,7 +53,7 @@ namespace Alarmy
         private void btnAdd_Click(object sender, EventArgs e)
         {
             GroupQueryResponse gqr = null;
-            MessageWrapperContent mrcResult = null;
+            MessageQueueItem mqiResult = null;
             MessageWrapper<GroupQueryMessage> gqmWrapper = new();
 
             lblVerifying.Visible = true;
@@ -81,30 +83,36 @@ namespace Alarmy
             // Receive the message from the server.
             lock (AlarmyState.MessageQueue)
             {
-                foreach (MessageWrapperContent mrc in AlarmyState.MessageQueue)
+                foreach (MessageQueueItem mqi in AlarmyState.MessageQueue)
                 {
-                    if (typeof(GroupQueryResponse) == mrc.Type)
+                    if (typeof(GroupQueryResponse) == mqi.Message.Type)
                     {
-                        mrcResult = mrc;
-                        gqr = (GroupQueryResponse)mrc.Message;
+                        mqiResult = mqi;
+                        gqr = (GroupQueryResponse)mqi.Message.Message;
                     }
                 }
 
-                if (mrcResult is not null)
+                if (mqiResult is not null)
                 {
-                    AlarmyState.MessageQueue.Remove(mrcResult);
+                    AlarmyState.MessageQueue.Remove(mqiResult);
+                }
+                else
+                {
+                    MessageBox.Show("Could not receive a reponse from the server. Try again.", "Alarmy");
+                    lblVerifying.Visible = false;
+                    return;
                 }
             }
 
             // Add the group to the list box if it's not enabled already.
-            if (gqr is not null && clbGroups.Items.Contains(gqr.Group))
+            if (!clbGroups.Items.Contains(gqr.Group))
             {
                 clbGroups.Items.Add(gqr.Group, gqr.Group.Enabled);
                 s_changesMade = true;
             }
             else
             {
-                MessageBox.Show("Could not receive a reponse from the server. Try again.", "Alarmy");
+                errorProvider.SetError(clbGroups, $"Already a member of {gqr.Group.Name}.");
             }
 
             lblVerifying.Visible = false;
@@ -135,6 +143,11 @@ namespace Alarmy
             Properties.Settings.Default.Save();
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void mtbGroupUID_Click(object sender, EventArgs e)
+        {
+            mtbGroupUID.SelectAll();
         }
     }
 }

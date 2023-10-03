@@ -1,6 +1,7 @@
 ﻿using AlarmyLib;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace AlarmyManager
@@ -17,9 +18,15 @@ namespace AlarmyManager
         private const string ColumnNameGroupId = "colGroupId";
         private const string ColumnHeaderGroupId = "Group ID";
 
+        // Buffer that holds the altered state of ManagerState.Groups
+        // before applying changes.
+        private List<Group> _modifiedGroups = new();
+
         public frmGroups()
         {
             InitializeComponent();
+
+            _modifiedGroups = ManagerState.Groups;
         }
 
         private void frmGroups_Load(object sender, EventArgs e)
@@ -28,6 +35,8 @@ namespace AlarmyManager
             dgvGroups.Columns.Add(ColumnNameGroupId, ColumnHeaderGroupId);
 
             RefreshDataGridView();
+
+            s_changesMade = false;
         }
 
         private void RefreshDataGridView()
@@ -38,7 +47,7 @@ namespace AlarmyManager
                 dgvGroups.Rows.Clear();
             }
 
-            foreach (Group group in ManagerState.Groups)
+            foreach (Group group in _modifiedGroups)
             {
                 // Add all groups except the default one.
                 if (group.ID != Guid.Empty)
@@ -61,22 +70,22 @@ namespace AlarmyManager
                 return;
             }
 
-            ManagerState.Groups.Add(new Group(Guid.NewGuid(), tbGroupName.Text));
+            _modifiedGroups.Add(new Group(Guid.NewGuid(), tbGroupName.Text));
             RefreshDataGridView();
-            s_changesMade = true;
             tbGroupName.Text = string.Empty;
+            s_changesMade = true;
         }
 
         private void btnRemoveGroup_Click(object sender, EventArgs e)
         {
             if (dgvGroups.SelectedCells.Count == 1)
             {
-                Group selectedGroup = ManagerState.Groups.Find(x =>
-                    x.ID == (Guid)dgvGroups.SelectedRows[0].Cells[ColumnNameGroupId].Value);
+                Group selectedGroup = _modifiedGroups.Find(x =>
+                    x.ID == (Guid)dgvGroups.SelectedCells[0].OwningRow.Cells[ColumnNameGroupId].Value);
 
                 if (selectedGroup is not null)
                 {
-                    ManagerState.Groups.Remove(selectedGroup);
+                    _modifiedGroups.Remove(selectedGroup);
                     RefreshDataGridView();
                     s_changesMade = true;
                 }
@@ -85,7 +94,8 @@ namespace AlarmyManager
 
         private void btnApply_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.Groups = JsonConvert.SerializeObject(ManagerState.Groups);
+            ManagerState.Groups = _modifiedGroups;
+            Properties.Settings.Default.Groups = JsonConvert.SerializeObject(_modifiedGroups);
             Properties.Settings.Default.Save();
             DialogResult = DialogResult.OK;
             Close();
@@ -93,15 +103,19 @@ namespace AlarmyManager
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            if (s_changesMade && (DialogResult.Yes == MessageBox.Show(this,
-                "Exit without applying changes?", "Alarmy", MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question)))
+            if (s_changesMade)
+            {
+                if (DialogResult.Yes == MessageBox.Show(this,
+                    "Exit without applying changes?", "Alarmy", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question))
+                {
+                    DialogResult = DialogResult.Cancel;
+                    Close();
+                }
+            }
+            else
             {
                 DialogResult = DialogResult.Cancel;
-                Close();
-            }
-            else if (!s_changesMade)
-            {
                 Close();
             }
         }
@@ -111,6 +125,29 @@ namespace AlarmyManager
             if (e.KeyCode == Keys.Tab)
             {
                 AddGroup();
+            }
+        }
+
+        private void btnEditGroup_Click(object sender, EventArgs e)
+        {
+            int selectedGroupIndex;
+
+            if (dgvGroups.SelectedRows.Count == 1)
+            {
+                Group selectedGroup = _modifiedGroups.Find(x =>
+                    x.ID == (Guid)dgvGroups.SelectedCells[0].OwningRow.Cells[ColumnNameGroupId].Value);
+
+                if (selectedGroup is not null)
+                {
+                    // Store the group index to insert the edited one at the same place.
+                    selectedGroupIndex = _modifiedGroups.IndexOf(selectedGroup);
+                    
+                    selectedGroup.Name = tbGroupName.Text;
+                    _modifiedGroups.Remove(selectedGroup);
+                    _modifiedGroups.Insert(selectedGroupIndex, selectedGroup);
+                    RefreshDataGridView();
+                    s_changesMade = true;
+                }
             }
         }
     }

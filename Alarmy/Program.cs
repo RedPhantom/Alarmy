@@ -43,7 +43,11 @@ namespace Alarmy
                 Properties.Settings.Default.Save();
             }
 
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.Groups))
+            if (string.IsNullOrEmpty(Properties.Settings.Default.Groups))
+            {
+                AlarmyState.Groups = new() { Group.GlobalGroup };
+            }
+            else
             {
                 AlarmyState.Groups = JsonConvert.DeserializeObject<List<Group>>(Properties.Settings.Default.Groups);
             }

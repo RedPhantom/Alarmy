@@ -101,7 +101,7 @@ namespace AlarmyManager
         /// <param name="client">The client from which the message was received.</param>
         private void HandleMessage(MessageWrapperContent mrc, ConnectionState client)
         {
-            s_logger.Debug($"Handling message {mrc.Repr()} from {client.Repr()}.");
+            s_logger.Trace($"Handling message {mrc.Repr()} from {client.Repr()}.");
 
             // Handle the message ("response" - a message from a client) based on its type.
             var @switch = new Dictionary<Type, Action> {
@@ -120,6 +120,7 @@ namespace AlarmyManager
                     ServiceStartedResponse ssr = (ServiceStartedResponse)mrc.Message;
 
                     UpdateActiveInstances(ssr.Instance);
+                    UpdateGroupMembership(ssr.Instance, ssr.GroupIDs);
                     _serverParameters.OnInstancesChange(this, new InstancesChangeEventArgs(ssr.Instance, client));
                 } },
                 { typeof(GroupQueryMessage), () =>
@@ -137,13 +138,13 @@ namespace AlarmyManager
                 } }
             };
 
-            try
+            if (@switch.ContainsKey(mrc.Type))
             {
                 @switch[mrc.Type]();
             }
-            catch (KeyNotFoundException knfe)
+            else
             {
-                s_logger.Warn(knfe, "Received an unexpected message type.");
+                s_logger.Warn($"Received an unexpected message type: {mrc}");
             }
         }
 
@@ -158,20 +159,47 @@ namespace AlarmyManager
                 s_logger.Error("UpdateActiveInstances Received a null instance.");
             }
 
+            // Update ActiveInstances.
             if (ManagerState.ActiveInstances.ContainsKey(instance))
             {
-                lock (ManagerState.ActiveInstances)
-                {
-                    ManagerState.ActiveInstances[instance] = DateTime.Now;
-                    s_logger.Trace("Updated an existing instance in the ActiveInstances pool.");
-                }
+                s_logger.Trace("Updated an existing instance in the ActiveInstances pool.");
             }
             else
             {
-                lock (ManagerState.ActiveInstances)
+                s_logger.Trace("Added a new instance to the ActiveInstances pool.");
+            }
+
+            lock (ManagerState.ActiveInstances)
+            {
+                ManagerState.ActiveInstances[instance] = DateTime.Now;
+            }
+        }
+
+        private void UpdateGroupMembership(Instance instance, List<Guid> groupIds)
+        {
+            // Update group membership.
+            if ((groupIds is null) || (groupIds.Count == 0))
+            {
+                return;
+            }
+
+            foreach (Guid guid in groupIds)
+            {
+                Group group = ManagerState.Groups.Find(x => x.ID == guid);
+
+                // Skip adding groups that don't exist (we haven't defined in ManagerState.Groups).
+                if (group is null)
                 {
-                    ManagerState.ActiveInstances.Add(instance, DateTime.Now);
-                    s_logger.Trace("Added a new instance to the ActiveInstances pool.");
+                    continue;
+                }
+
+                if (ManagerState.GroupedInstances.ContainsKey(group))
+                {
+                    ManagerState.GroupedInstances[group].Add(instance);
+                }
+                else
+                {
+                    ManagerState.GroupedInstances[group] = new List<Instance>() { instance };
                 }
             }
         }

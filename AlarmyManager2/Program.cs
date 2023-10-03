@@ -43,7 +43,12 @@ namespace AlarmyManager
             if (!string.IsNullOrEmpty(Properties.Settings.Default.Groups))
             {
                 ManagerState.Groups = JsonConvert.DeserializeObject<List<Group>>(Properties.Settings.Default.Groups);
-                ManagerState.Groups.Add(Group.CreateEmpty());
+                
+                // Only add the default group if it doesn't already exist.
+                if (!ManagerState.Groups.Contains(Group.CreateEmpty()))
+                {
+                    ManagerState.Groups.Add(Group.CreateEmpty());
+                }
             }
         }
     }
